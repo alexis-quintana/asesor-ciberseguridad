@@ -21,7 +21,7 @@ Estas referencias respaldan la **práctica de documentación**, no el método de
 | `regla_id` | Identificador único de la regla en `base_conocimientos.py` (R001, R002…). |
 | `area` | cuentas, respaldos, correo, redes o global. |
 | `control` | Clave del control evaluado. |
-| `tipo_regla` | hallazgo, recomendacion, clasificacion, verificacion. |
+| `tipo_regla` | hallazgo, recomendacion, riesgo_global, verificacion, nivel_probabilidad, nivel_impacto, banda_riesgo, zona. |
 | `regla_si_entonces` | La regla en forma SI–ENTONCES, generada desde la base para evitar discrepancias. |
 | `fuente` | Clave de la fuente en `FUENTES`. |
 | `localizacion_declarada` | Sección y página que cita hoy la base. |

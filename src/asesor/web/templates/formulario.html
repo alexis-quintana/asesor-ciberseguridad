@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block contenido %}
+<h1>Evaluación de ciberseguridad</h1>
+<p class="suave">Responda las 48 preguntas sobre las prácticas de su empresa. Las respuestas no se guardan: se usan solo para calcular el resultado.</p>
+<p class="suave">¿Solo quiere ver cómo funciona? <a href="/?demo=1">Cargar el caso de demostración</a>.</p>
+{% if errores %}<div class="error" role="alert">{% for e in errores %}<div>{{ e }}</div>{% endfor %}</div>{% endif %}
+<form method="post" action="/resultado">
+  <div class="tarjeta">
+    <label for="empresa"><b>Nombre de la empresa</b> <span class="suave">(opcional, solo aparece en el reporte)</span></label><br>
+    <input type="text" id="empresa" name="empresa" maxlength="80" value="{{ empresa }}">
+  </div>
+  {% for area, items in grupos %}
+  <section class="tarjeta">
+    <h2>{{ loop.index }}. {{ area|capitalize }}</h2>
+    {% for numero, clave, texto in items %}
+    <fieldset class="pregunta" style="border:0;padding:10px 0;margin:0;min-width:0">
+      <legend style="padding:0;margin-bottom:6px">{{ numero }}. {{ texto }}</legend>
+      <div class="opciones">
+        {% for valor, nombre in opciones %}
+        <label><input type="radio" name="r_{{ clave }}" value="{{ valor }}" required {{ 'checked' if respuestas.get(clave) == valor }}>{{ nombre }}</label>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endfor %}
+  </section>
+  {% endfor %}
+  <details class="tarjeta" {{ 'open' if impactos }}>
+    <summary>Extensión opcional: impacto para el negocio</summary>
+    <p class="suave">Si valora de 1 (mínimo) a 5 (crítico) qué tan grave sería un incidente en cada área, el resultado añade bandas de riesgo y una zona de la matriz probabilidad–impacto. Déjelo vacío para el flujo principal.</p>
+    {% for area in areas %}
+    <p><label for="i_{{ area }}">{{ preguntas_impacto[area] }}</label><br>
+    <select id="i_{{ area }}" name="i_{{ area }}"><option value="">(no usar)</option>
+      {% for n in range(1, 6) %}<option value="{{ n }}" {{ 'selected' if impactos.get(area)|string == n|string }}>{{ n }}</option>{% endfor %}
+    </select></p>
+    {% endfor %}
+  </details>
+  <div class="acciones"><button type="submit">Ver resultado</button></div>
+</form>
+{% endblock %}

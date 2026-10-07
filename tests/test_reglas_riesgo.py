@@ -79,11 +79,13 @@ class PruebasCasosFijos(unittest.TestCase):
                                 ("banda_riesgo", 5), ("zona", 1)):
             self.assertEqual(sum(d.etapa == etapa for d in resultado.disparos), esperado)
 
-    def test_sin_impactos_no_corren_reglas_de_riesgo(self):
+    def test_sin_impactos_solo_corre_el_flujo_principal(self):
         memoria = MemoriaTrabajo()
         memoria.cargar_respuestas(todos("si"))
         resultado = inferir(memoria)
-        self.assertFalse(any(d.etapa in ("nivel_probabilidad", "zona") for d in resultado.disparos))
+        etapas = {d.etapa for d in resultado.disparos}
+        self.assertIn("nivel_probabilidad", etapas)  # nivel de cada área
+        self.assertFalse(etapas & {"nivel_impacto", "banda_riesgo", "zona"})
         self.assertIsNone(riesgo_desde_hechos(resultado.hechos))
 
 

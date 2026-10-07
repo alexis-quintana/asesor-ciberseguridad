@@ -1,8 +1,12 @@
-"""Cálculo de riesgo por área y zona global (motor v1).
+"""Cálculo de riesgo: probabilidad por área (flujo principal) y extensión de impacto.
 
-Reemplaza, como resultado principal, la clasificación provisional por conteo de
-áreas (reglas R097–R101 de la base del 01/10), que no tenía respaldo en las
-fuentes. Este módulo no modifica la base de conocimientos.
+Flujo principal: probabilidad P(a) de cada área (promedio de sus 12 puntajes,
+Sihwi et al., 2016) y su nivel bajo/medio/alto; el riesgo global lo concluyen
+las reglas R097–R101 contando áreas con riesgo alto (ver base_conocimientos.py).
+
+Extensión opcional (investigación): impacto por área, riesgo R = P × I, bandas
+de Koeze y zona de la matriz de Sihwi. Solo se usa con la opción --con-impacto.
+Este módulo no modifica la base de conocimientos.
 
 Fuentes y adaptaciones:
 
@@ -10,7 +14,8 @@ Fuentes y adaptaciones:
   puntúa en tres niveles (bajo 0–33, medio 34–66, alto 67–100). Sihwi asigna un
   valor aleatorio dentro del rango; aquí se usa el punto medio (16.5, 50, 83.5)
   para que el sistema dé siempre el mismo resultado (adaptación del equipo).
-- «no_se» se puntúa como «no»: criterio conservador de Hibshi et al. (2016).
+- «no_se» se puntúa como «no»: criterio conservador del equipo (las respuestas
+  autodeclaradas pueden sobrestimar la seguridad real: Chidukwani et al., 2026).
 - Probabilidad por área: promedio de los puntajes de sus preguntas, Sihwi et al.
   (2016), §II.D, p. 4, fórmula (1).
 - Impacto: respuesta entera de 1 a 5 convertida linealmente a 0.2–1.0, Koeze
@@ -21,7 +26,7 @@ Fuentes y adaptaciones:
   riesgo (muy bajo 0–0.20, bajo 0.21–0.40, medio 0.41–0.60, alto 0.61–0.80, muy
   alto 0.81–1.00): Koeze (2017), p. 42 impresa (Tabla 8).
 - Zona global (verde, amarilla, roja) por la matriz probabilidad–impacto de
-  3×3: Sihwi et al. (2016), §II.D, pp. 3-4. La probabilidad media y el impacto
+  3×3: Sihwi et al. (2016), Tabla III, p. 3, e interpretación en §II.D, p. 4. La probabilidad media y el impacto
   medio promedian las cuatro áreas (la fórmula (2) de Sihwi, p. 4, promedia el
   impacto de sus preguntas). La zona se determina con los mismos cortes de nivel.
 
@@ -40,7 +45,7 @@ from .base_conocimientos import RESPUESTAS, VARIABLES
 
 # Sihwi et al. (2016), §II.D, p. 3: rangos bajo 0–33, medio 34–66, alto 67–100.
 # Punto medio de cada rango (adaptación del equipo). «no_se» puntúa como «no»
-# (Hibshi et al., 2016).
+# (criterio del equipo).
 PUNTAJE = {"si": 16.5, "parcialmente": 50.0, "no": 83.5, "no_se": 83.5}
 
 # Corte continuo de los niveles de Sihwi (adaptación del equipo).
@@ -109,7 +114,7 @@ def banda_koeze(riesgo):
 
 
 def zona_sihwi(nivel_probabilidad, nivel_impacto):
-    """Zona de la matriz probabilidad–impacto de 3×3 (Sihwi et al., 2016, pp. 3-4).
+    """Zona de la matriz probabilidad–impacto de 3×3 (Sihwi et al., 2016, Tabla III, p. 3, e interpretación en p. 4).
 
     Roja si ambos son altos; amarilla si (medio, medio), (alto, medio) o
     (medio, alto); verde en cualquier otro caso.
@@ -191,7 +196,7 @@ def evaluar_riesgo(respuestas, impactos):
         f"Global: P media = {r.probabilidad_media:.1f} ({r.nivel_probabilidad_media}), "
         f"I media = (100/{n}) × suma de I = {r.impacto_medio:.1f} "
         f"({r.nivel_impacto_medio}); zona {r.zona} "
-        f"[Sihwi 2016, §II.D, pp. 3-4, matriz 3×3]"
+        f"[Sihwi 2016, Tabla III, p. 3, e interpretación en §II.D, p. 4]"
     )
     r.trazabilidad.append(
         f"Riesgo global = promedio de los {n} riesgos por área = "
@@ -199,6 +204,32 @@ def evaluar_riesgo(respuestas, impactos):
         f"bandas: Koeze 2017, Tabla 8, p. 42]"
     )
     return r
+
+
+def hechos_probabilidad(respuestas):
+    """Hechos p_<área> (0–100) del flujo principal: solo necesitan las 48 respuestas.
+
+    P(a) es el promedio de los 12 puntajes del área (Sihwi et al., 2016, §II.D,
+    p. 4, fórmula (1)), redondeado a 9 decimales para que los cortes de nivel no
+    dependan de la coma flotante.
+    """
+    _validar_respuestas(respuestas)
+    hechos = {}
+    for area in AREAS:
+        claves = [c for c, v in VARIABLES.items() if v["area"] == area]
+        hechos[f"p_{area}"] = round(sum(PUNTAJE[respuestas[c]] for c in claves) / len(claves), 9)
+    return hechos
+
+
+def hechos_nivel_respuesta(respuestas):
+    """Hechos nivel_r_<control>: nivel de Sihwi del puntaje de cada respuesta.
+
+    «no» y «no sé» (83,5) dan «alto»; «parcialmente» (50) da «medio»; «sí»
+    (16,5) da «bajo». Usan los mismos puntajes y cortes que la probabilidad
+    (Sihwi et al., 2016, p. 3); lo consume la prioridad (R126–R131).
+    """
+    _validar_respuestas(respuestas)
+    return {f"nivel_r_{c}": nivel_sihwi(PUNTAJE[respuestas[c]]) for c in VARIABLES}
 
 
 def hechos_numericos(respuestas, impactos):

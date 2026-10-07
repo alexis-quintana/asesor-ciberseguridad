@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block titulo %}Resultado · Asesor de ciberseguridad{% endblock %}
+{% block contenido %}
+<h1>Resultado{% if empresa %} · {{ empresa }}{% endif %}</h1>
+<div class="tarjeta">
+  <div class="suave">Riesgo global</div>
+  <div class="global nivel-{{ r.riesgo_global }}">{{ nombres[r.riesgo_global] }}</div>
+  <div class="areas" style="margin-top:10px">
+    {% for a in areas %}
+    <div><span class="suave">{{ a|capitalize }}</span><b class="nivel-{{ h['nivel_p_' ~ a] }}">{{ nombres[h['nivel_p_' ~ a]] }}</b><span class="suave">probabilidad {{ '%.1f'|format(h['p_' ~ a]) }}</span></div>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="tarjeta">
+  <h2>Recomendaciones priorizadas ({{ lista|length }})</h2>
+  {% if lista %}
+  <table>
+    <tr><th>N.º</th><th>Prioridad</th><th>Recomendación</th><th>Área</th><th>Práctica evaluada</th></tr>
+    {% for i in lista %}
+    <tr><td>{{ i.orden }}</td><td class="insignia nivel-{{ {'alta':'alto','media':'medio','baja':'bajo'}[i.prioridad] }}">{{ i.prioridad|capitalize }}</td><td>{{ i.recomendacion }}</td><td>{{ i.area|capitalize }}</td><td class="suave">{{ i.pregunta }}</td></tr>
+    {% endfor %}
+  </table>
+  {% else %}<p>No se encontraron hallazgos: todas las prácticas evaluadas están implementadas.</p>{% endif %}
+</div>
+
+{% if r.verificaciones_solicitadas %}
+<div class="tarjeta"><h2>Respuestas por verificar</h2><ul>
+{% for a in r.verificaciones_solicitadas %}<li>Verifique las respuestas «no sé» del área {{ a }}; se contaron como «no» para ser conservadores.</li>{% endfor %}
+</ul></div>
+{% endif %}
+
+{% if riesgo %}
+<div class="tarjeta"><h2>Extensión: impacto, bandas y zona</h2>
+<table><tr><th>Área</th><th>Impacto (0–1)</th><th>Riesgo (0–1)</th><th>Banda</th></tr>
+{% for a in areas %}<tr><td>{{ a|capitalize }}</td><td>{{ '%.1f'|format(riesgo.impacto[a]) }}</td><td>{{ '%.3f'|format(riesgo.riesgo_area[a]) }}</td><td>{{ riesgo.banda_area[a] }}</td></tr>{% endfor %}
+</table>
+<p>Zona global: <b>{{ riesgo.zona }}</b> · riesgo numérico global {{ '%.3f'|format(riesgo.riesgo_global) }} ({{ riesgo.banda_global }}).</p></div>
+{% endif %}
+
+<div class="tarjeta"><details><summary>¿Cómo se llegó a este resultado? (reglas aplicadas)</summary>
+<p class="suave">Cada regla muestra sus condiciones (SI), su conclusión (ENTONCES) y su fuente.</p>
+<pre>{{ explicacion }}</pre></details></div>
+
+<div class="tarjeta"><h2>Límites de este resultado</h2><ul>{% for t in aviso %}<li>{{ t }}</li>{% endfor %}</ul></div>
+
+<form method="post" action="/reporte" target="_blank" class="acciones">
+  <input type="hidden" name="empresa" value="{{ empresa }}">
+  {% for clave, valor in respuestas.items() %}<input type="hidden" name="r_{{ clave }}" value="{{ valor }}">{% endfor %}
+  {% for a, v in impactos.items() %}<input type="hidden" name="i_{{ a }}" value="{{ v }}">{% endfor %}
+  <button type="submit">Ver reporte imprimible</button>
+  <a class="btn sec" href="/">Nueva evaluación</a>
+</form>
+{% endblock %}

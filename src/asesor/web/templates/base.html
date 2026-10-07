@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block titulo %}Asesor de ciberseguridad{% endblock %}</title>
+<style>
+:root{--fondo:#f5f6f4;--tarjeta:#fff;--texto:#1d2420;--suave:#5a645e;--linea:#d6dbd7;--acento:#1f5f4a;--bajo:#1f7a4d;--medio:#9a6a00;--alto:#b3261e}
+@media (prefers-color-scheme:dark){:root{--fondo:#151a17;--tarjeta:#1d2420;--texto:#e8ece9;--suave:#a3ada7;--linea:#33403a;--acento:#6cc6a4;--bajo:#5fd096;--medio:#e8b84a;--alto:#ff8a80}}
+*{box-sizing:border-box}
+a{color:var(--acento)}
+body{margin:0;background:var(--fondo);color:var(--texto);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{background:var(--acento);color:#fff;padding:14px 16px}
+header div{max-width:880px;margin:0 auto}
+header strong{font-size:1.1rem}header span{opacity:.85;font-size:.9rem;display:block}
+main{max-width:880px;margin:0 auto;padding:16px}
+h1{font-size:1.4rem;margin:8px 0 4px}h2{font-size:1.1rem;margin:0 0 8px}
+.tarjeta{background:var(--tarjeta);border:1px solid var(--linea);border-radius:10px;padding:14px 16px;margin:14px 0}
+.suave{color:var(--suave);font-size:.92rem}
+.error{border-left:4px solid var(--alto);background:var(--tarjeta);padding:10px 14px;margin:14px 0;border-radius:6px}
+.pregunta{padding:10px 0;border-top:1px solid var(--linea)}
+.pregunta:first-of-type{border-top:0}
+.pregunta p{margin:0 0 6px}
+.opciones{display:flex;flex-wrap:wrap;gap:6px 8px}
+.opciones label{border:1px solid var(--linea);border-radius:999px;padding:4px 12px;cursor:pointer;font-size:.93rem}
+.opciones input{position:absolute;opacity:0}
+.opciones label:has(input:checked){background:var(--acento);color:#fff;border-color:var(--acento)}
+.opciones label:has(input:focus-visible){outline:3px solid var(--medio);outline-offset:2px}
+.btn,button{background:var(--acento);color:#fff;border:0;border-radius:8px;padding:10px 18px;font:inherit;cursor:pointer;text-decoration:none;display:inline-block}
+.btn.sec{background:transparent;color:var(--acento);border:1px solid var(--acento)}
+.acciones{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}
+table{width:100%;border-collapse:collapse;font-size:.93rem}
+th,td{padding:7px 8px;border-bottom:1px solid var(--linea);text-align:left;vertical-align:top}
+th{color:var(--suave);font-weight:600}
+.insignia{font-weight:700}
+.nivel-bajo{color:var(--bajo)}.nivel-medio{color:var(--medio)}.nivel-alto{color:var(--alto)}
+.global{font-size:1.5rem;font-weight:700}
+.areas{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.areas div{border:1px solid var(--linea);border-radius:8px;padding:10px}
+.areas b{display:block;font-size:1.3rem}
+details summary{cursor:pointer;color:var(--acento);font-weight:600}
+pre{white-space:pre-wrap;font-size:.8rem;background:var(--fondo);padding:10px;border-radius:6px;overflow-x:auto}
+select,input[type=text]{font:inherit;padding:6px 8px;border:1px solid var(--linea);border-radius:6px;background:var(--tarjeta);color:var(--texto);max-width:100%}
+@media (max-width:560px){th:nth-child(5),td:nth-child(5){display:none}}
+</style>
+</head>
+<body>
+<header><div><strong>Asesor de ciberseguridad para pequeñas empresas</strong><span>Sistema experto basado en reglas · USAT · Inteligencia Artificial</span></div></header>
+<main>{% block contenido %}{% endblock %}</main>
+</body>
+</html>

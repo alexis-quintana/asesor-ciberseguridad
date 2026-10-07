@@ -6,11 +6,14 @@ repite el ciclo hasta que ninguna regla nueva se dispare.
 
 Fuente: Sihwi et al. (2016), §II.D, encadenamiento hacia adelante.
 
-La clasificación por conteo de áreas (R097–R101) es PROVISIONAL: proviene de las
-reglas R097–R101 (conteo de áreas con hallazgos, criterio propuesto por el
-equipo) y será reemplazada por el modelo de riesgo de Sihwi et al. (2016) y
-Koeze (2017) en un paso posterior. Este módulo no calcula puntajes ni fórmulas
-de riesgo.
+Flujo principal: las respuestas producen hallazgos y recomendaciones; la
+probabilidad de cada área (Sihwi et al., 2016) da su nivel de riesgo (R106–R108)
+y el conteo de áreas con riesgo alto da el riesgo global (R097–R101). La prioridad
+de cada hallazgo (R126–R131) combina el nivel de su respuesta y el de su área,
+como la matriz de Sihwi et al. (2016). Extensión
+opcional de investigación: con los cuatro impactos cargados se ejecutan además
+las etapas de impacto, banda de riesgo y zona (R109–R125; Sihwi et al., 2016 y
+Koeze, 2017).
 """
 
 from __future__ import annotations
@@ -20,14 +23,17 @@ from dataclasses import dataclass, field
 
 from .base_conocimientos import REGLAS, VARIABLES
 from .base_reglas_riesgo import REGLAS_RIESGO
-from .riesgo import hechos_numericos
+from .base_reglas_prioridad import REGLAS_PRIORIDAD
+from .riesgo import hechos_nivel_respuesta, hechos_numericos, hechos_probabilidad
 
-# Orden de procesamiento de las etapas de la base de conocimientos.
-ETAPAS_BASE = ("riesgo_parcial", "recomendacion", "riesgo_global", "verificacion")
-# Etapas del modelo de riesgo (base_reglas_riesgo.py); solo corren si se cargaron
-# los cuatro impactos.
-ETAPAS_RIESGO = ("nivel_probabilidad", "nivel_impacto", "banda_riesgo", "zona")
-ETAPAS = ETAPAS_BASE + ETAPAS_RIESGO
+# Flujo principal, en orden: hallazgos, recomendaciones, verificación de «no sé»,
+# nivel de riesgo de cada área, riesgo global y prioridad de cada hallazgo.
+ETAPAS_BASE = ("riesgo_parcial", "recomendacion", "verificacion",
+               "nivel_probabilidad", "riesgo_global", "prioridad")
+# Extensión opcional (base_reglas_riesgo.py): solo corre si se cargaron los
+# cuatro impactos.
+ETAPAS_EXTENSION = ("nivel_impacto", "banda_riesgo", "zona")
+ETAPAS = ETAPAS_BASE + ETAPAS_EXTENSION
 
 # Operadores de condición que usa la base de conocimientos.
 OPERADORES = {
@@ -36,11 +42,11 @@ OPERADORES = {
     "menor_que": lambda actual, esperado: actual < esperado,
     "mayor_o_igual": lambda actual, esperado: actual >= esperado,
     "menor_o_igual": lambda actual, esperado: actual <= esperado,
+    "en": lambda actual, esperado: actual in esperado,
 }
 
 TIPOS_CONCLUSION = (
-    "hallazgo", "recomendacion", "clasificacion_provisional", "solicitud_verificacion",
-    "nivel",
+    "hallazgo", "recomendacion", "solicitud_verificacion", "nivel", "prioridad",
 )
 
 # Áreas en el orden del cuestionario.
@@ -63,16 +69,17 @@ class Disparo:
 class ResultadoInferencia:
     """Conclusiones de una ejecución del motor.
 
-    La clasificación provisional se reemplazará por el modelo de Sihwi et al.
-    (2016) y Koeze (2017); es None si ninguna regla de riesgo global se disparó
-    (por ejemplo, cuando hay respuestas «no_se»).
+    «riesgo_global» es el nivel (bajo, medio o alto) que concluyen las reglas
+    R097–R101; «hechos» es la memoria de trabajo al terminar (incluye
+    nivel_p_<área> con el nivel de riesgo de cada área).
     """
 
     disparos: list = field(default_factory=list)
     hallazgos: list = field(default_factory=list)
     recomendaciones: dict = field(default_factory=dict)
-    clasificacion_provisional: str | None = None
+    riesgo_global: str | None = None
     verificaciones_solicitadas: list = field(default_factory=list)
+    prioridades: list = field(default_factory=list)
     hechos: dict = field(default_factory=dict)
 
 
@@ -98,8 +105,9 @@ def _validar_reglas(reglas):
 
 def _actualizar_derivados(memoria, resultado):
     """Recalcula los hechos derivados que usan las reglas de síntesis."""
-    areas = {h["area"] for h in resultado.hallazgos}
-    memoria.asignar("areas_con_hallazgos", len(areas))
+    niveles = [memoria.obtener(f"nivel_p_{area}") for area in AREAS]
+    memoria.asignar("areas_riesgo_alto", niveles.count("alto"))
+    memoria.asignar("areas_riesgo_medio", niveles.count("medio"))
     desconocidas = [c for c in VARIABLES if memoria.obtener(c) == "no_se"]
     memoria.asignar("respuestas_desconocidas", len(desconocidas))
     for area in AREAS:
@@ -129,12 +137,16 @@ def _aplicar(regla, memoria, resultado):
         resultado.hallazgos.append({"id": entonces["id"], "area": entonces["area"]})
     elif tipo == "recomendacion":
         resultado.recomendaciones.setdefault(entonces["area"], []).append(entonces["texto"])
-    elif tipo == "clasificacion_provisional":
-        resultado.clasificacion_provisional = entonces["nivel"]
     elif tipo == "solicitud_verificacion":
         resultado.verificaciones_solicitadas.append(entonces["area"])
     elif tipo == "nivel":
         memoria.asignar(entonces["hecho"], entonces["valor"])
+        if entonces["hecho"] == "riesgo_global":
+            resultado.riesgo_global = entonces["valor"]
+    elif tipo == "prioridad":
+        memoria.asignar(entonces["hecho"], entonces["valor"])
+        resultado.prioridades.append({"control": entonces["control"], "area": entonces["area"],
+                                      "prioridad": entonces["valor"]})
     resultado.disparos.append(Disparo(
         id=regla["id"],
         etapa=regla["etapa"],
@@ -145,28 +157,26 @@ def _aplicar(regla, memoria, resultado):
     ))
 
 
-def inferir(memoria, reglas=None, reglas_riesgo=None):
+def inferir(memoria, reglas=None, reglas_riesgo=None, reglas_prioridad=None):
     """Ejecuta el encadenamiento hacia adelante sobre la memoria de trabajo.
 
     Fuente: Sihwi et al. (2016), §II.D.
 
     - Exige las 48 respuestas; si faltan, lanza ValueError con la lista.
-    - Procesa las etapas en el orden de ETAPAS. Antes de cada etapa recalcula
-      los hechos derivados (areas_con_hallazgos, respuestas_desconocidas y
-      desconocidas_<area>). Dentro de la etapa repite el ciclo «evaluar reglas,
+    - Calcula la probabilidad de cada área (p_<área>) y procesa las etapas en el
+      orden de ETAPAS. Antes de cada etapa recalcula los hechos derivados
+      (areas_riesgo_alto, areas_riesgo_medio, respuestas_desconocidas y
+      desconocidas_<área>). Dentro de la etapa repite el ciclo «evaluar reglas,
       disparar las aplicables» en orden de número hasta que ninguna regla nueva
       se dispare; cada regla se dispara una sola vez.
-    - Si la memoria tiene los cuatro impactos, calcula los hechos numéricos
-      (p_, i100_, r_) y ejecuta además las etapas del modelo de riesgo
-      (niveles, bandas y zona; reglas R106–R125 de base_reglas_riesgo.py).
+    - Si la memoria tiene los cuatro impactos, calcula además los hechos
+      numéricos de la extensión (i100_, r_ y los globales) y ejecuta sus etapas.
     - Modifica la memoria recibida (agrega hallazgos y hechos derivados).
-
-    La clasificación global resultante es provisional (reglas R097–R101) y será
-    reemplazada por el modelo de Sihwi et al. (2016) y Koeze (2017).
     """
     reglas = REGLAS if reglas is None else reglas
     reglas_riesgo = REGLAS_RIESGO if reglas_riesgo is None else reglas_riesgo
-    reglas = list(reglas) + list(reglas_riesgo)
+    reglas_prioridad = REGLAS_PRIORIDAD if reglas_prioridad is None else reglas_prioridad
+    reglas = list(reglas) + list(reglas_riesgo) + list(reglas_prioridad)
     faltantes = memoria.respuestas_faltantes()
     if faltantes:
         raise ValueError(f"Faltan respuestas: {', '.join(faltantes)}")
@@ -174,14 +184,17 @@ def inferir(memoria, reglas=None, reglas_riesgo=None):
 
     resultado = ResultadoInferencia()
     disparadas = set()
-    con_riesgo = memoria.impactos_cargados()
-    if con_riesgo:
-        respuestas = {c: memoria.obtener(c) for c in VARIABLES}
+    respuestas = {c: memoria.obtener(c) for c in VARIABLES}
+    for hecho, valor in {**hechos_probabilidad(respuestas),
+                         **hechos_nivel_respuesta(respuestas)}.items():
+        memoria.asignar(hecho, valor)
+    con_extension = memoria.impactos_cargados()
+    if con_extension:
         impactos = {a: memoria.obtener(f"impacto_{a}") for a in AREAS}
         for hecho, valor in hechos_numericos(respuestas, impactos).items():
             memoria.asignar(hecho, valor)
     for etapa in ETAPAS:
-        if etapa in ETAPAS_RIESGO and not con_riesgo:
+        if etapa in ETAPAS_EXTENSION and not con_extension:
             continue
         _actualizar_derivados(memoria, resultado)
         reglas_etapa = sorted((r for r in reglas if r["etapa"] == etapa), key=_numero)

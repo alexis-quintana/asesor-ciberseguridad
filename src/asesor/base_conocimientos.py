@@ -1,7 +1,9 @@
 """Base de conocimientos preliminar: Asesor ciberseguridad para pequeñas empresas.
 
 Contiene 48 comprobaciones de prácticas, 48 reglas de recomendación y 9 reglas
-de síntesis/verificación (105 reglas en total). No contiene motor de inferencia.
+de síntesis/verificación (105 reglas en total): R001–R096 por práctica,
+R097–R101 de riesgo global por conteo de áreas con riesgo alto y R102–R105 de
+verificación de respuestas «no sé». No contiene motor de inferencia.
 
 Todas las reglas operativas son adaptaciones del equipo basadas en antecedentes;
 ninguna se atribuye literalmente a sus autores. La aplicación de niveles de
@@ -89,7 +91,7 @@ CONTROLES = {
         ("admin_restringido", "¿Los privilegios de administrador local están restringidos a quien los necesita?", "no", "Se observaron usuarios locales con privilegios administrativos amplios.", "Revisar y limitar los permisos de administrador local.", "CHIDUKWANI_2026", "§4.3.2, pp. 11-12"),
         ("carpetas_restringidas", "¿Los permisos de las carpetas de red limitan el acceso a quienes lo necesitan?", "no", "Se detectaron permisos de unidades de red definidos de forma laxa.", "Revisar los permisos de las carpetas y unidades de red.", "CHIDUKWANI_2026", "§4.3.2, p. 11"),
         ("mfa_publico", "¿Las aplicaciones expuestas a Internet exigen autenticación multifactor?", "no", "Se identificaron portales externos sin MFA pese a declaraciones de implementación.", "Activar MFA en las aplicaciones expuestas, cuando sea compatible.", "CHIDUKWANI_2026", "§4.3.2 y §4.4.2.7, pp. 12 y 17"),
-        ("mfa_cobertura", "¿La política de MFA cubre todas las cuentas y servicios críticos definidos?", "parcialmente", "La adopción selectiva de MFA dejó sistemas críticos sin protección.", "Completar y comprobar la cobertura de MFA en servicios críticos.", "CHIDUKWANI_2026", "§4.4.2.7, p. 17"),
+        ("mfa_cobertura", "¿La política de MFA cubre todas las cuentas y servicios críticos definidos?", ("no", "parcialmente"), "La adopción selectiva de MFA dejó sistemas críticos sin protección.", "Completar y comprobar la cobertura de MFA en servicios críticos.", "CHIDUKWANI_2026", "§4.4.2.7, p. 17"),
         ("mfa_contacto_individual", "¿Cada usuario dispone de un factor de MFA bajo su propio control?", "no", "Una pyme utilizaba un solo teléfono para recibir códigos SMS de varios usuarios.", "Evitar que varias cuentas dependan de un mismo número para MFA.", "CHIDUKWANI_2026", "§4.3.2 y §4.4.2.7, pp. 12 y 17"),
         ("politica_claves_aplicada", "¿La política de contraseñas se aplica mediante controles comprobables?", "no", "Varias organizaciones declararon una política que no se aplicaba técnicamente.", "Comprobar que los requisitos de acceso se aplican en las cuentas pertinentes.", "CHIDUKWANI_2026", "§4.3.2, p. 12"),
         ("claves_diferentes", "¿Se utilizan contraseñas diferentes en las aplicaciones de la empresa?", "no", "Se aconseja utilizar contraseñas diferentes para las aplicaciones en línea.", "Evitar la reutilización de contraseñas entre aplicaciones.", "PAWAR_2022", "§4.1, p. 6"),
@@ -150,6 +152,13 @@ def _construir_reglas():
     for area, controles in CONTROLES.items():
         for clave, pregunta, respuesta, evidencia, medida, fuente, localizacion in controles:
             hallazgo = f"hallazgo_{clave}"
+            # Una tupla de respuestas dispara el hallazgo con cualquiera de ellas.
+            if isinstance(respuesta, tuple):
+                condicion = {"hecho": clave, "operador": "en", "valor": list(respuesta)}
+                texto_respuesta = " o ".join(f"«{r}»" for r in respuesta)
+            else:
+                condicion = {"hecho": clave, "operador": "igual", "valor": respuesta}
+                texto_respuesta = f"«{respuesta}»"
             base = {
                 "area": area,
                 "fuentes": [{"id": fuente, "localizacion": localizacion}],
@@ -161,9 +170,9 @@ def _construir_reglas():
                 **base,
                 "id": f"R{orden:03d}",
                 "etapa": "riesgo_parcial",
-                "si": [{"hecho": clave, "operador": "igual", "valor": respuesta}],
+                "si": [condicion],
                 "entonces": {"tipo": "hallazgo", "id": hallazgo, "area": area},
-                "explicacion": f"Respuesta «{respuesta}» en «{pregunta}»; {evidencia}",
+                "explicacion": f"Respuesta {texto_respuesta} en «{pregunta}»; {evidencia}",
             })
             orden += 1
             reglas.append({
@@ -180,16 +189,20 @@ def _construir_reglas():
 
 REGLAS = _construir_reglas()
 
-# Los umbrales globales son PROPUESTAS DEL EQUIPO: los antecedentes no
-# establecen estos cortes. El futuro motor debe contar áreas con hallazgos
-# DESPUÉS de ejecutar las 96 reglas y no clasificar un caso incompleto.
-_FUENTES_SINTESIS = [
-    {"id": "SIHWI_2016", "localizacion": "§II.C, pp. 3-4 (inferencia y conclusión)"},
-    {"id": "CHIDUKWANI_2026", "localizacion": "§3.5 y §4.3, pp. 6-12 (validación de respuestas)"},
+# Riesgo global (R097–R101): la regla de dos o más áreas con riesgo alto es el
+# ejemplo R3 del enunciado de P5; los demás escalones (medio y bajo) son
+# criterio del equipo, porque los antecedentes no fijan estos cortes. El nivel
+# de cada área (nivel_p_<área>) lo concluyen las reglas R106–R108.
+_FUENTES_GLOBAL = [
+    {"id": "SIHWI_2016", "localizacion": "§II.D, p. 4 (conclusión: combinación de resultados parciales)"},
+]
+_FUENTES_VERIFICACION = [
+    {"id": "SIHWI_2016", "localizacion": "§II.D, p. 3 (inferencia)"},
+    {"id": "CHIDUKWANI_2026", "localizacion": "§4.3, pp. 10-12 (contraste entre lo declarado y lo verificado)"},
 ]
 
 
-def _agregar_sintesis(etiqueta, condiciones, salida, explicacion):
+def _agregar_sintesis(etiqueta, condiciones, salida, explicacion, fuentes, evidencia=None):
     REGLAS.append({
         "id": f"R{len(REGLAS) + 1:03d}",
         "area": "global",
@@ -197,20 +210,39 @@ def _agregar_sintesis(etiqueta, condiciones, salida, explicacion):
         "si": condiciones,
         "entonces": salida,
         "explicacion": explicacion,
-        "fuentes": _FUENTES_SINTESIS,
+        "fuentes": fuentes,
         "tipo_respaldo": "criterio_propuesto_por_el_equipo",
-        "evidencia_del_articulo": "Los artículos justifican combinar conclusiones y contrastar declaraciones; no fijan estos umbrales.",
+        "evidencia_del_articulo": evidencia or "Los artículos justifican combinar conclusiones y contrastar declaraciones; no fijan estos umbrales.",
         "validacion_experto": "pendiente",
     })
 
 
-for _cantidad, _nivel in ((0, "sin_hallazgos_en_este_cuestionario"), (1, "atencion"), (2, "elevado"), (3, "elevado"), (4, "elevado")):
+_EVIDENCIA_GLOBAL = ("Los artículos justifican combinar conclusiones parciales en una global; "
+                     "no fijan estos cortes. R097 sigue el ejemplo R3 del enunciado de P5; "
+                     "el resto es criterio del equipo.")
+
+# (condiciones sobre el número de áreas con riesgo alto y medio, nivel global, motivo)
+_RIESGO_GLOBAL = (
+    ([("areas_riesgo_alto", "mayor_o_igual", 2)], "alto",
+     "Dos o más áreas tienen riesgo alto."),
+    ([("areas_riesgo_alto", "igual", 1)], "medio",
+     "Una área tiene riesgo alto."),
+    ([("areas_riesgo_alto", "igual", 0), ("areas_riesgo_medio", "mayor_o_igual", 2)], "medio",
+     "Ninguna área tiene riesgo alto y dos o más tienen riesgo medio."),
+    ([("areas_riesgo_alto", "igual", 0), ("areas_riesgo_medio", "igual", 1)], "bajo",
+     "Ninguna área tiene riesgo alto y solo una tiene riesgo medio."),
+    ([("areas_riesgo_alto", "igual", 0), ("areas_riesgo_medio", "igual", 0)], "bajo",
+     "Todas las áreas tienen riesgo bajo."),
+)
+
+for _condiciones, _nivel, _motivo in _RIESGO_GLOBAL:
     _agregar_sintesis(
         "riesgo_global",
-        [{"hecho": "areas_con_hallazgos", "operador": "igual", "valor": _cantidad},
-         {"hecho": "respuestas_desconocidas", "operador": "igual", "valor": 0}],
-        {"tipo": "clasificacion_provisional", "nivel": _nivel},
-        "Clasificación preliminar por número de áreas con hallazgos; el especialista debe validar su significado y umbral.",
+        [{"hecho": h, "operador": op, "valor": v} for h, op, v in _condiciones],
+        {"tipo": "nivel", "hecho": "riesgo_global", "valor": _nivel},
+        f"Riesgo global «{_nivel}»: {_motivo[0].lower()}{_motivo[1:]}",
+        _FUENTES_GLOBAL,
+        _EVIDENCIA_GLOBAL,
     )
 
 for _area in CONTROLES:
@@ -219,6 +251,8 @@ for _area in CONTROLES:
         [{"hecho": f"desconocidas_{_area}", "operador": "mayor_que", "valor": 0}],
         {"tipo": "solicitud_verificacion", "area": _area},
         f"Existen respuestas «no_se» en {_area}; verificar antes de una conclusión definitiva.",
+        _FUENTES_VERIFICACION,
+        "Chidukwani et al. (2026) respaldan contrastar lo declarado con lo verificado; pedir verificación ante «no_se» es criterio del equipo.",
     )
 
 
@@ -250,7 +284,7 @@ def verificar_base():
         r["entonces"]["id"] for r in REGLAS if r["entonces"]["tipo"] == "hallazgo"
     }
     derivados = hallazgos_producidos | {
-        "areas_con_hallazgos", "respuestas_desconocidas",
+        "areas_riesgo_alto", "areas_riesgo_medio", "respuestas_desconocidas",
         *(f"desconocidas_{area}" for area in CONTROLES),
     }
     firmas = set()
@@ -264,7 +298,8 @@ def verificar_base():
             hecho = condicion["hecho"]
             if hecho not in VARIABLES and hecho not in derivados:
                 errores.append(f"{r['id']}: hecho no definido: {hecho}")
-            if hecho in VARIABLES and condicion["valor"] not in RESPUESTAS:
+            valores = condicion["valor"] if condicion["operador"] == "en" else [condicion["valor"]]
+            if hecho in VARIABLES and not all(v in RESPUESTAS for v in valores):
                 errores.append(f"{r['id']}: respuesta no permitida")
         firma = (r["etapa"], repr(r["si"]), repr(r["entonces"]))
         if firma in firmas:

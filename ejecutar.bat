@@ -1,6 +1,7 @@
 @echo off
 rem Crea el entorno virtual si no existe, instala dependencias y ejecuta el asesor.
-rem Uso: ejecutar.bat [--demo] [--explicar]
+rem Uso: ejecutar.bat [--web] [--demo] [--explicar] [--con-impacto]
+rem   ejecutar.bat --web   abre la interfaz web en http://127.0.0.1:5000
 setlocal
 cd /d "%~dp0"
 

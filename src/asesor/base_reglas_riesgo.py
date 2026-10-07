@@ -5,6 +5,11 @@ solo como funciones de riesgo.py: nivel de probabilidad e impacto (Sihwi et al.,
 2016), banda de riesgo (Koeze, 2017) y zona de la matriz 3×3 (Sihwi et al.,
 2016). No modifica base_conocimientos.py.
 
+Flujo principal: R106–R108 dan el nivel de riesgo de cada área a partir de su
+probabilidad; con ellas, R097–R101 (base_conocimientos.py) concluyen el riesgo
+global. Extensión de investigación (solo con los cuatro impactos cargados):
+R109–R125 (nivel de impacto, banda de riesgo y zona).
+
 Las reglas son GENÉRICAS: una misma regla se aplica a cada ámbito (las cuatro
 áreas y «global») y se expande con expandir(). Se cuentan como 20 reglas
 distintas (R106–R125), no como las 20 × ámbitos instancias.
@@ -20,8 +25,8 @@ from .riesgo import AREAS, CORTE_ALTO, CORTE_MEDIO
 
 AMBITOS = AREAS + ("global",)
 
-_SIHWI_NIVELES = [{"id": "SIHWI_2016", "localizacion": "§II.D, p. 3 (rangos bajo/medio/alto)"}]
-_SIHWI_ZONA = [{"id": "SIHWI_2016", "localizacion": "§II.D, pp. 3-4 (matriz probabilidad–impacto 3×3)"}]
+_SIHWI_NIVELES = [{"id": "SIHWI_2016", "localizacion": "§II.D, pp. 3-4 (puntaje por respuesta y categorías 0–33, 34–66 y 67–100)"}]
+_SIHWI_ZONA = [{"id": "SIHWI_2016", "localizacion": "Tabla III, p. 3 (matriz de 9 categorías); §II.D, p. 4 (interpretación)"}]
 _KOEZE_BANDAS = [{"id": "KOEZE_2017", "localizacion": "Tabla 8, p. 42 impresa (bandas de riesgo)"}]
 
 _ADAPTACION_NIVELES = ("Sihwi da rangos enteros (0–33, 34–66, 67–100); el corte continuo "
@@ -102,7 +107,7 @@ def _construir():
                 "zona_global", zona,
                 f"Probabilidad «{p}» e impacto «{i}» corresponden a la zona {zona} de la matriz.",
                 _SIHWI_ZONA,
-                "El mapeo de las 9 celdas a verde/amarilla/roja se lee de la figura de la matriz (pp. 3-4)."))
+                "Sihwi clasifica las 9 celdas de la Tabla III (p. 3) en muy frágil, suficientemente buena o muy buena (p. 4); los colores verde, amarilla y roja son del equipo."))
             n += 1
     return reglas
 

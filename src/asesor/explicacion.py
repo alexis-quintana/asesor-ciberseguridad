@@ -9,10 +9,12 @@ Fuente: Sesión 12, Representación del Conocimiento (reglas SI-ENTONCES).
 from __future__ import annotations
 
 _SIMBOLOS = {"igual": "=", "mayor_que": ">", "menor_que": "<",
-             "mayor_o_igual": "≥", "menor_o_igual": "≤"}
+             "mayor_o_igual": "≥", "menor_o_igual": "≤", "en": "="}
 
 
 def _valor(valor):
+    if isinstance(valor, (list, tuple)):
+        return " o ".join(_valor(v) for v in valor)
     if isinstance(valor, bool):
         return "verdadero" if valor else "falso"
     if isinstance(valor, str):
@@ -31,11 +33,9 @@ def _conclusion(entonces):
         return f"{entonces['id']} (área: {entonces['area']})"
     if tipo == "recomendacion":
         return f"recomendar «{entonces['texto']}» (área: {entonces['area']})"
-    if tipo == "clasificacion_provisional":
-        return f"clasificación provisional = «{entonces['nivel']}»"
     if tipo == "solicitud_verificacion":
         return f"solicitar verificación del área «{entonces['area']}»"
-    if tipo == "nivel":
+    if tipo in ("nivel", "prioridad"):
         return f"{entonces['hecho']} = {_valor(entonces['valor'])}"
     return repr(entonces)
 
