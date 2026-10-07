@@ -6,7 +6,7 @@ repite el ciclo hasta que ninguna regla nueva se dispare.
 
 Fuente: Sihwi et al. (2016), §II.D, encadenamiento hacia adelante.
 
-La clasificación global que produce este motor es PROVISIONAL: proviene de las
+La clasificación por conteo de áreas (R097–R101) es PROVISIONAL: proviene de las
 reglas R097–R101 (conteo de áreas con hallazgos, criterio propuesto por el
 equipo) y será reemplazada por el modelo de riesgo de Sihwi et al. (2016) y
 Koeze (2017) en un paso posterior. Este módulo no calcula puntajes ni fórmulas
@@ -19,18 +19,28 @@ import re
 from dataclasses import dataclass, field
 
 from .base_conocimientos import REGLAS, VARIABLES
+from .base_reglas_riesgo import REGLAS_RIESGO
+from .riesgo import hechos_numericos
 
 # Orden de procesamiento de las etapas de la base de conocimientos.
-ETAPAS = ("riesgo_parcial", "recomendacion", "riesgo_global", "verificacion")
+ETAPAS_BASE = ("riesgo_parcial", "recomendacion", "riesgo_global", "verificacion")
+# Etapas del modelo de riesgo (base_reglas_riesgo.py); solo corren si se cargaron
+# los cuatro impactos.
+ETAPAS_RIESGO = ("nivel_probabilidad", "nivel_impacto", "banda_riesgo", "zona")
+ETAPAS = ETAPAS_BASE + ETAPAS_RIESGO
 
 # Operadores de condición que usa la base de conocimientos.
 OPERADORES = {
     "igual": lambda actual, esperado: actual == esperado,
     "mayor_que": lambda actual, esperado: actual > esperado,
+    "menor_que": lambda actual, esperado: actual < esperado,
+    "mayor_o_igual": lambda actual, esperado: actual >= esperado,
+    "menor_o_igual": lambda actual, esperado: actual <= esperado,
 }
 
 TIPOS_CONCLUSION = (
     "hallazgo", "recomendacion", "clasificacion_provisional", "solicitud_verificacion",
+    "nivel",
 )
 
 # Áreas en el orden del cuestionario.
@@ -123,6 +133,8 @@ def _aplicar(regla, memoria, resultado):
         resultado.clasificacion_provisional = entonces["nivel"]
     elif tipo == "solicitud_verificacion":
         resultado.verificaciones_solicitadas.append(entonces["area"])
+    elif tipo == "nivel":
+        memoria.asignar(entonces["hecho"], entonces["valor"])
     resultado.disparos.append(Disparo(
         id=regla["id"],
         etapa=regla["etapa"],
@@ -133,7 +145,7 @@ def _aplicar(regla, memoria, resultado):
     ))
 
 
-def inferir(memoria, reglas=None):
+def inferir(memoria, reglas=None, reglas_riesgo=None):
     """Ejecuta el encadenamiento hacia adelante sobre la memoria de trabajo.
 
     Fuente: Sihwi et al. (2016), §II.D.
@@ -144,12 +156,17 @@ def inferir(memoria, reglas=None):
       desconocidas_<area>). Dentro de la etapa repite el ciclo «evaluar reglas,
       disparar las aplicables» en orden de número hasta que ninguna regla nueva
       se dispare; cada regla se dispara una sola vez.
+    - Si la memoria tiene los cuatro impactos, calcula los hechos numéricos
+      (p_, i100_, r_) y ejecuta además las etapas del modelo de riesgo
+      (niveles, bandas y zona; reglas R106–R125 de base_reglas_riesgo.py).
     - Modifica la memoria recibida (agrega hallazgos y hechos derivados).
 
     La clasificación global resultante es provisional (reglas R097–R101) y será
     reemplazada por el modelo de Sihwi et al. (2016) y Koeze (2017).
     """
     reglas = REGLAS if reglas is None else reglas
+    reglas_riesgo = REGLAS_RIESGO if reglas_riesgo is None else reglas_riesgo
+    reglas = list(reglas) + list(reglas_riesgo)
     faltantes = memoria.respuestas_faltantes()
     if faltantes:
         raise ValueError(f"Faltan respuestas: {', '.join(faltantes)}")
@@ -157,16 +174,25 @@ def inferir(memoria, reglas=None):
 
     resultado = ResultadoInferencia()
     disparadas = set()
+    con_riesgo = memoria.impactos_cargados()
+    if con_riesgo:
+        respuestas = {c: memoria.obtener(c) for c in VARIABLES}
+        impactos = {a: memoria.obtener(f"impacto_{a}") for a in AREAS}
+        for hecho, valor in hechos_numericos(respuestas, impactos).items():
+            memoria.asignar(hecho, valor)
     for etapa in ETAPAS:
+        if etapa in ETAPAS_RIESGO and not con_riesgo:
+            continue
         _actualizar_derivados(memoria, resultado)
         reglas_etapa = sorted((r for r in reglas if r["etapa"] == etapa), key=_numero)
         hubo_disparo = True
         while hubo_disparo:
             hubo_disparo = False
             for regla in reglas_etapa:
-                if regla["id"] in disparadas or not _cumple(regla, memoria):
+                clave = regla.get("clave", regla["id"])
+                if clave in disparadas or not _cumple(regla, memoria):
                     continue
-                disparadas.add(regla["id"])
+                disparadas.add(clave)
                 _aplicar(regla, memoria, resultado)
                 hubo_disparo = True
     resultado.hechos = memoria.hechos

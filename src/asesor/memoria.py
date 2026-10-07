@@ -3,18 +3,19 @@
 Almacena los hechos del caso en curso (respuestas del usuario y hechos
 derivados por las reglas), separados de la base de conocimientos.
 
-Fuente: Ghanem et al. (2023), ESASCF, representación de hechos.
+Fuente: Ghanem et al. (2023), §III.B, p. 6 (ESASCF, representación de hechos).
 """
 
 from __future__ import annotations
 
 from .base_conocimientos import RESPUESTAS, VARIABLES
+from .riesgo import AREAS, validar_impactos
 
 
 class MemoriaTrabajo:
     """Conjunto de hechos «nombre -> valor» del caso evaluado.
 
-    Fuente: Ghanem et al. (2023), ESASCF, representación de hechos.
+    Fuente: Ghanem et al. (2023), §III.B, p. 6 (ESASCF, representación de hechos).
     """
 
     def __init__(self):
@@ -53,6 +54,19 @@ class MemoriaTrabajo:
                 )
         for clave, valor in respuestas.items():
             self.asignar(clave, valor)
+
+    def cargar_impactos(self, impactos):
+        """Carga el impacto (1–5) de cada área como hechos «impacto_<área>».
+
+        Valida con riesgo.validar_impactos; si falla, no carga ninguno.
+        """
+        validar_impactos(impactos)
+        for area in AREAS:
+            self.asignar(f"impacto_{area}", impactos[area])
+
+    def impactos_cargados(self):
+        """Indica si están los cuatro hechos de impacto."""
+        return all(self.tiene(f"impacto_{a}") for a in AREAS)
 
     def respuestas_faltantes(self):
         """Claves de VARIABLES que aún no tienen respuesta, en orden del cuestionario."""

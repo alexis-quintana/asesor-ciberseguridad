@@ -14,6 +14,7 @@ from .base_conocimientos import VARIABLES
 from .explicacion import explicar
 from .memoria import MemoriaTrabajo
 from .motor import AREAS, inferir
+from .riesgo import PREGUNTAS_IMPACTO, evaluar_riesgo, riesgo_desde_hechos
 
 OPCIONES = {"1": "si", "2": "no", "3": "parcialmente", "4": "no_se"}
 
@@ -24,6 +25,9 @@ CASO_DEMO.update({
     "restauracion_probada": "no",
     "formacion_phishing": "no",
 })
+
+# Impactos fijos del caso de demostración (escala 1–5 de Koeze, 2017).
+IMPACTOS_DEMO = {"cuentas": 3, "respaldos": 4, "correo": 3, "redes": 3}
 
 
 def preguntar(entrada=input):
@@ -46,6 +50,35 @@ def preguntar(entrada=input):
     return respuestas
 
 
+def preguntar_impactos(entrada=input):
+    """Hace las 4 preguntas de impacto (una por área, escala 1–5) y las devuelve."""
+    impactos = {}
+    print("\n=== Impacto para el negocio (1 = mínimo, 5 = crítico) ===")
+    for area in AREAS:
+        while True:
+            texto = entrada(f"{PREGUNTAS_IMPACTO[area]} [1-5]: ").strip()
+            if texto in {"1", "2", "3", "4", "5"}:
+                impactos[area] = int(texto)
+                break
+            print("   Opción no válida. Escriba un número del 1 al 5.")
+    return impactos
+
+
+def mostrar_riesgo(riesgo):
+    """Imprime el riesgo por área, la zona y el riesgo global (motor v1)."""
+    print("\n=== Riesgo por área ===")
+    print(f"{'Área':<11}{'Prob.':>7}  {'Nivel':<6}{'Impacto':>8}{'Riesgo':>8}  Banda")
+    for area in AREAS:
+        print(f"{area:<11}{riesgo.probabilidad[area]:>7.1f}  "
+              f"{riesgo.nivel_probabilidad[area]:<6}{riesgo.impacto[area]:>8.1f}"
+              f"{riesgo.riesgo_area[area]:>8.3f}  {riesgo.banda_area[area]}")
+    print(f"\nProbabilidad media: {riesgo.probabilidad_media:.1f} "
+          f"({riesgo.nivel_probabilidad_media}); "
+          f"impacto medio: {riesgo.impacto_medio:.1f} ({riesgo.nivel_impacto_medio})")
+    print(f"Zona global: {riesgo.zona}")
+    print(f"Riesgo global: {riesgo.riesgo_global:.3f} ({riesgo.banda_global})")
+
+
 def mostrar_resultado(resultado):
     """Imprime hallazgos, recomendaciones, clasificación y verificaciones."""
     print("\n=== Resultado ===")
@@ -65,8 +98,8 @@ def mostrar_resultado(resultado):
     if not resultado.recomendaciones:
         print("  (ninguna)")
 
-    print("\nClasificación global provisional (pendiente de validación; será reemplazada"
-          " por el modelo de Sihwi 2016 y Koeze 2017):")
+    print("\nClasificación provisional heredada (conteo de áreas con hallazgos; criterio del"
+          " equipo sin respaldo en las fuentes, solo de referencia):")
     if resultado.clasificacion_provisional is None:
         print("  No se emitió: hay respuestas «no sé» que deben verificarse primero.")
     else:
@@ -93,19 +126,30 @@ def main(argv=None):
     if args.demo:
         print("Modo demostración: caso fijo (todo «sí» salvo mfa_publico, "
               "restauracion_probada y formacion_phishing en «no»).")
+        print("Impactos del caso de demostración: "
+              + ", ".join(f"{a} = {v}" for a, v in IMPACTOS_DEMO.items()) + ".")
         respuestas = CASO_DEMO
+        impactos = IMPACTOS_DEMO
     else:
         try:
             respuestas = preguntar()
+            impactos = preguntar_impactos()
         except (EOFError, KeyboardInterrupt):
             print("\nCuestionario interrumpido.")
             return 1
 
     memoria = MemoriaTrabajo()
     memoria.cargar_respuestas(respuestas)
+    memoria.cargar_impactos(impactos)
     resultado = inferir(memoria)
+    # Niveles, bandas y zona salen de las reglas R106–R125 disparadas por el motor.
+    riesgo = riesgo_desde_hechos(resultado.hechos)
+    mostrar_riesgo(riesgo)
     mostrar_resultado(resultado)
     if args.explicar:
+        print("\n=== Explicación del cálculo de riesgo ===")
+        for linea in evaluar_riesgo(respuestas, impactos).trazabilidad:
+            print(f"- {linea}")
         print("\n=== Explicación (reglas disparadas) ===")
         print(explicar(resultado))
     return 0

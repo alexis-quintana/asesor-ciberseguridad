@@ -8,7 +8,8 @@ Fuente: Sesión 12, Representación del Conocimiento (reglas SI-ENTONCES).
 
 from __future__ import annotations
 
-_SIMBOLOS = {"igual": "=", "mayor_que": ">"}
+_SIMBOLOS = {"igual": "=", "mayor_que": ">", "menor_que": "<",
+             "mayor_o_igual": "≥", "menor_o_igual": "≤"}
 
 
 def _valor(valor):
@@ -34,6 +35,8 @@ def _conclusion(entonces):
         return f"clasificación provisional = «{entonces['nivel']}»"
     if tipo == "solicitud_verificacion":
         return f"solicitar verificación del área «{entonces['area']}»"
+    if tipo == "nivel":
+        return f"{entonces['hecho']} = {_valor(entonces['valor'])}"
     return repr(entonces)
 
 

@@ -67,6 +67,22 @@ class PruebasMotor(unittest.TestCase):
         self.assertIsNone(resultado.clasificacion_provisional)
         self.assertEqual([d.id for d in resultado.disparos], ["R102"])
 
+    def test_todo_no_genera_47_hallazgos(self):
+        # mfa_cobertura solo genera hallazgo con «parcialmente» (base del 01/10),
+        # así que con las 48 respuestas en «no» hay 47 hallazgos y 47 recomendaciones.
+        resultado = inferir(caso(**{clave: "no" for clave in VARIABLES}))
+        self.assertEqual(len(resultado.hallazgos), 47)
+        self.assertNotIn("hallazgo_mfa_cobertura", [h["id"] for h in resultado.hallazgos])
+        self.assertEqual(sum(len(v) for v in resultado.recomendaciones.values()), 47)
+        self.assertEqual(resultado.hechos["areas_con_hallazgos"], 4)
+        self.assertEqual(resultado.clasificacion_provisional, "elevado")
+
+    def test_mfa_cobertura_parcialmente_genera_hallazgo(self):
+        resultado = inferir(caso(mfa_cobertura="parcialmente"))
+        self.assertEqual(resultado.hallazgos,
+                         [{"id": "hallazgo_mfa_cobertura", "area": "cuentas"}])
+        self.assertEqual([d.id for d in resultado.disparos], ["R009", "R010", "R098"])
+
     def test_cada_regla_a_lo_sumo_una_vez(self):
         resultado = inferir(caso(
             cuentas_individuales="no", admin_restringido="no",
