@@ -8,15 +8,15 @@ R129 (medio, alto) media; R130 (medio, medio) media; R131 (medio, bajo) baja.
 
 import unittest
 
-from asesor.base_conocimientos import VARIABLES
-from asesor.base_reglas_prioridad import (
+from app.conocimiento.base_conocimientos import VARIABLES
+from app.conocimiento.base_reglas_prioridad import (
     REGLAS_PRIORIDAD, REGLAS_PRIORIDAD_GENERICAS, verificar_reglas_prioridad,
 )
-from asesor.explicacion import formatear_regla
-from asesor.interfaz_consola import CASO_DEMO
-from asesor.memoria import MemoriaTrabajo
-from asesor.motor import inferir
-from asesor.priorizacion import lista_priorizada
+from app.resultados.explicacion import formatear_regla
+from app.consola import CASO_DEMO
+from app.inferencia.memoria import MemoriaTrabajo
+from app.inferencia.motor import inferir
+from app.inferencia.priorizacion import lista_priorizada
 
 CUENTAS = [c for c, v in VARIABLES.items() if v["area"] == "cuentas"]
 MFA = "mfa_cobertura"  # su hallazgo se dispara con «no» y con «parcialmente»
@@ -117,15 +117,18 @@ class PruebasListaPriorizada(unittest.TestCase):
         memoria = MemoriaTrabajo()
         memoria.cargar_respuestas(CASO_DEMO)
         lista = lista_priorizada(inferir(memoria))
-        self.assertEqual([i["orden"] for i in lista], list(range(1, 26)))
+        self.assertEqual([i["orden"] for i in lista], list(range(1, 27)))
+        # 26 hallazgos: 18 «no» en áreas altas (alta), 6 media y 2 baja.
         self.assertEqual([i["prioridad"] for i in lista],
-                         ["alta"] * 18 + ["media"] * 5 + ["baja"] * 2)
+                         ["alta"] * 18 + ["media"] * 6 + ["baja"] * 2)
         # Altas: cuentas (P = 69,5) y respaldos (P = 69,5) empatan; desempata el orden del cuestionario.
         self.assertEqual([i["area"] for i in lista[:18]], ["cuentas"] * 9 + ["respaldos"] * 9)
-        # Medias: primero mfa_cobertura (cuentas, P = 69,5) y luego correo (P = 44,4).
+        # Medias: las dos respuestas «parcialmente» en áreas altas (R129; P = 69,5) y luego
+        # las cuatro «no» de correo (R127; P = 44,4).
         self.assertEqual(lista[18]["control"], MFA)
-        self.assertEqual({i["area"] for i in lista[19:23]}, {"correo"})
-        self.assertEqual({i["area"] for i in lista[23:]}, {"redes"})
+        self.assertEqual(lista[19]["control"], "alcance_proveedor_copias")
+        self.assertEqual({i["area"] for i in lista[20:24]}, {"correo"})
+        self.assertEqual({i["area"] for i in lista[24:]}, {"redes"})
         self.assertTrue(all(i["recomendacion"] for i in lista))
 
     def test_ordena_por_probabilidad_del_area(self):

@@ -17,13 +17,13 @@ import argparse
 import threading
 import webbrowser
 
-from .base_conocimientos import VARIABLES
-from .explicacion import explicar
-from .memoria import MemoriaTrabajo
-from .motor import AREAS, inferir
-from .priorizacion import lista_priorizada
-from .reporte import AVISO_LIMITES
-from .riesgo import PREGUNTAS_IMPACTO, evaluar_riesgo, riesgo_desde_hechos
+from app.conocimiento.base_conocimientos import VARIABLES
+from app.resultados.explicacion import explicar
+from app.inferencia.memoria import MemoriaTrabajo
+from app.inferencia.motor import AREAS, inferir
+from app.inferencia.priorizacion import lista_priorizada
+from app.resultados.reporte import AVISO_LIMITES, mensaje_sin_recomendaciones, verificaciones_concretas
+from app.inferencia.riesgo import PREGUNTAS_IMPACTO, evaluar_riesgo, riesgo_desde_hechos
 
 OPCIONES = {"1": "si", "2": "no", "3": "parcialmente", "4": "no_se"}
 
@@ -129,13 +129,15 @@ def mostrar_resultado(resultado):
     for item in lista_priorizada(resultado):
         print(f"  {item['orden']:>2}. [{item['prioridad']}] {item['recomendacion']} "
               f"({item['area']}, riesgo {resultado.hechos['nivel_p_' + item['area']]})")
-    if not resultado.prioridades:
-        print("  (ninguna)")
+    mensaje = mensaje_sin_recomendaciones(resultado)
+    if mensaje:
+        print(f"  (ninguna) {mensaje}")
 
     print("\nVerificaciones solicitadas:")
-    for area in resultado.verificaciones_solicitadas:
-        print(f"  - Verificar las respuestas «no sé» del área {area} "
-              "(se contaron como «no» para ser conservadores).")
+    for grupo in verificaciones_concretas(resultado):
+        print(f"  - Área {grupo['area']}: respuestas «no sé» (contadas como «no» solo para calcular el riesgo):")
+        for pregunta in grupo["preguntas"]:
+            print(f"      · {pregunta['pregunta']} → {pregunta['verificar']}")
     if not resultado.verificaciones_solicitadas:
         print("  (ninguna)")
 
@@ -159,7 +161,7 @@ def main(argv=None):
 
     if args.web:
         try:
-            from .web import create_app
+            from app.web import create_app
         except ImportError:
             print("La interfaz web necesita Flask: pip install -r requirements.txt")
             return 1

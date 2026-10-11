@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block titulo %}Regla {{ fila.id }} · Mantenimiento{% endblock %}
+{% block contenido %}
+{% set r = fila.regla %}
+<h1>Regla {{ fila.id }}</h1>
+<p class="suave">{{ fila.etapa }} · área {{ fila.area }}{% if fila.es_nueva %} · regla nueva{% endif %}</p>
+{% if error %}<div class="error" role="alert">{{ error }}</div>{% endif %}
+<div class="tarjeta"><div class="mono">{{ formal(r) }}</div></div>
+<form method="post" action="/admin/regla/{{ fila.id }}" class="tarjeta">
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  {% if r.etapa in ('recomendacion', 'recomendacion_adicional') %}
+  <label>Texto de la recomendación<textarea name="texto" rows="2" maxlength="300" required>{{ r.entonces.texto }}</textarea></label>
+  {% endif %}
+  {% if fila.es_nueva %}
+  <label>Prioridad
+    <select name="prioridad">{% for p in prioridades %}<option value="{{ p }}" {{ 'selected' if r.entonces.prioridad == p }}>{{ p }}</option>{% endfor %}</select></label>
+  {% endif %}
+  {% if 'ambito' not in r %}
+  <label>Explicación<textarea name="explicacion" rows="2" maxlength="500" required>{{ r.explicacion }}</textarea></label>
+  {% else %}<p class="suave">Esta regla es genérica (se aplica por área): su explicación se genera automáticamente.</p>{% endif %}
+  <label>Evidencia de la fuente<textarea name="evidencia_del_articulo" rows="2" maxlength="500" required>{{ r.evidencia_del_articulo }}</textarea></label>
+  <div class="rejilla">
+    <label>Fuente
+      <select name="fuente_id">{% for id, f in fuentes.items() %}<option value="{{ id }}" {{ 'selected' if r.fuentes[0].id == id }}>{{ f.autores.split(' y ')[0] }} ({{ f.anio }})</option>{% endfor %}</select></label>
+    <label>Localización<input type="text" name="localizacion" value="{{ r.fuentes[0].localizacion }}" maxlength="200" required></label>
+    <label>Estado de validación
+      <select name="validacion_experto">{% for e in estados %}<option value="{{ e }}" {{ 'selected' if r.validacion_experto == e }}>{{ e }}</option>{% endfor %}</select></label>
+  </div>
+  <div class="acciones"><button type="submit">Guardar cambios</button><a class="btn sec" href="/admin">Cancelar</a></div>
+</form>
+{% if fila.editada and not fila.es_nueva %}
+<form method="post" action="/admin/regla/{{ fila.id }}/restablecer" class="acciones"><input type="hidden" name="csrf" value="{{ csrf }}">
+  <button type="submit" class="btn sec">Restablecer a la versión original</button></form>
+{% endif %}
+{% endblock %}

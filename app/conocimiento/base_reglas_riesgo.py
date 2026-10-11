@@ -20,8 +20,8 @@ y los impactos): p_<ámbito> (0–100), i100_<ámbito> (0–100), r_<ámbito> (0
 
 from __future__ import annotations
 
-from .base_conocimientos import FUENTES
-from .riesgo import AREAS, CORTE_ALTO, CORTE_MEDIO
+from app.conocimiento.base_conocimientos import FUENTES
+from app.inferencia.riesgo import AREAS, CORTE_ALTO, CORTE_MEDIO
 
 AMBITOS = AREAS + ("global",)
 

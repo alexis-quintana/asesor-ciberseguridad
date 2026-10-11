@@ -18,6 +18,13 @@ from collections import Counter
 
 RESPUESTAS = ("si", "no", "parcialmente", "no_se")
 
+# Respuestas que generan hallazgo: la ausencia de la práctica («no») y su
+# implementación incompleta («parcialmente»). «no_se» no genera hallazgo: se
+# puntúa como «no» pero pide verificación (R102–R105).
+RESPUESTAS_HALLAZGO = ("no", "parcialmente")
+NOTA_PARCIAL = ("Si la práctica solo está parcialmente implementada, también se recomienda "
+                "completarla (criterio del equipo).")
+
 # Las páginas son las páginas impresas en cada artículo, salvo que se indique
 # expresamente «página PDF». Conservamos títulos completos para trazabilidad.
 FUENTES = {
@@ -152,6 +159,12 @@ def _construir_reglas():
     for area, controles in CONTROLES.items():
         for clave, pregunta, respuesta, evidencia, medida, fuente, localizacion in controles:
             hallazgo = f"hallazgo_{clave}"
+            # Una práctica solo parcial también es un hallazgo (criterio del equipo,
+            # generalizado desde mfa_cobertura; Chidukwani et al., 2026, §4.4.2.7, p. 17:
+            # la adopción selectiva dejó sistemas críticos sin protección).
+            if respuesta == "no":
+                respuesta = RESPUESTAS_HALLAZGO
+                evidencia = f"{evidencia} {NOTA_PARCIAL}"
             # Una tupla de respuestas dispara el hallazgo con cualquiera de ellas.
             if isinstance(respuesta, tuple):
                 condicion = {"hecho": clave, "operador": "en", "valor": list(respuesta)}

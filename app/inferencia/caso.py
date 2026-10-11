@@ -5,8 +5,8 @@ Reúne los pasos que comparten la consola y la web, para no repetirlos.
 
 from __future__ import annotations
 
-from .memoria import MemoriaTrabajo
-from .motor import inferir
+from app.inferencia.memoria import MemoriaTrabajo
+from app.inferencia.motor import inferir
 
 
 def evaluar(respuestas, impactos=None):

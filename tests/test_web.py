@@ -3,12 +3,12 @@
 import unittest
 
 try:
-    from asesor.web import create_app, leer_formulario
+    from app.web import create_app, leer_formulario
 except ImportError:  # Flask no instalado
     create_app = None
 
-from asesor.base_conocimientos import VARIABLES
-from asesor.interfaz_consola import CASO_DEMO, IMPACTOS_DEMO
+from app.conocimiento.base_conocimientos import VARIABLES
+from app.consola import CASO_DEMO, IMPACTOS_DEMO
 
 
 def formulario(respuestas=CASO_DEMO, impactos=None, empresa=""):
@@ -25,14 +25,38 @@ class PruebasWeb(unittest.TestCase):
         self.cliente = create_app().test_client()
 
     def test_formulario_con_las_48_preguntas(self):
-        r = self.cliente.get("/")
+        r = self.cliente.get("/evaluar")
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.data.count(b'type="radio"'), 48 * 4)
         for clave in VARIABLES:
             self.assertIn(f'name="r_{clave}"'.encode(), r.data)
 
+    def test_landing_presenta_el_sistema_y_enlaza_a_la_evaluacion(self):
+        r = self.cliente.get("/")
+        self.assertEqual(r.status_code, 200)
+        html = r.data.decode()
+        self.assertIn('href="/evaluar"', html)
+        self.assertIn("/evaluar?demo=1", html)
+        self.assertIn("/static/css/style.css", html)
+        for autor in ("Sihwi et al. (2016)", "Vitkus et al. (2019)", "Koeze (2017)",
+                      "Fähnrich y Roßnagel (2022)", "Pawar y Palivela (2022)", "Chidukwani et al. (2026)"):
+            self.assertIn(autor, html)
+        self.assertIn("Citas literales", html)
+
+    def test_hoja_de_estilos_se_sirve(self):
+        r = self.cliente.get("/static/css/style.css")
+        self.assertEqual(r.status_code, 200)
+        self.assertIn(b"--brand", r.data)
+        r.close()
+
+    def test_el_flujo_marca_el_paso_actual(self):
+        self.assertIn('aria-current="step"', self.cliente.get("/evaluar").data.decode())
+        res = self.cliente.post("/resultado", data=formulario()).data.decode()
+        self.assertIn("Resultados</li>", res)
+        self.assertIn('aria-current="step"', res)
+
     def test_demo_precarga_las_respuestas(self):
-        r = self.cliente.get("/?demo=1")
+        r = self.cliente.get("/evaluar?demo=1")
         self.assertEqual(r.data.count(b" checked>"), 48)
         self.assertIn("Tienda de ejemplo".encode(), r.data)
 
@@ -41,9 +65,12 @@ class PruebasWeb(unittest.TestCase):
         self.assertEqual(r.status_code, 200)
         texto = r.data.decode()
         self.assertIn("Tienda &lt;x&gt;", texto)            # se escapa
-        self.assertIn("Recomendaciones priorizadas (25)", texto)
+        self.assertIn("Recomendaciones priorizadas (26)", texto)
         self.assertIn("nivel-alto", texto)
-        self.assertIn("del área correo", texto)
+        self.assertIn("Respuestas por verificar", texto)
+        self.assertIn("¿Se ha comprobado que el filtro de correo declarado realmente funciona?", texto)
+        self.assertIn("Cómo se calculó cada área", texto)
+        self.assertIn("R108:cuentas", texto)
         self.assertNotIn("Extensión", texto)
 
     def test_resultado_con_extension(self):

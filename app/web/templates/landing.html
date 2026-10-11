@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block titulo %}Asesor de ciberseguridad para pequeñas empresas{% endblock %}
+{% block clase_main %}ancho{% endblock %}
+{% block contenido %}
+
+<section class="hero" aria-labelledby="titulo-hero">
+  <div>
+    <p class="eyebrow">Ciberseguridad para pequeñas empresas</p>
+    <h1 id="titulo-hero">Más claridad.<span>Mejor protección.</span></h1>
+    <p class="lead">Conoce las prácticas de seguridad de tu empresa y recibe recomendaciones que puedes entender y aplicar, cada una con su porqué.</p>
+    <div class="cta">
+      <a class="btn grande" href="/evaluar">Evaluar mi empresa
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <a class="btn sec grande" href="/evaluar?demo=1">Ver demostración</a>
+    </div>
+    <ul class="meta"><li>48 preguntas</li><li>4 áreas</li><li>Evaluación guiada</li></ul>
+  </div>
+  <div class="escena" aria-hidden="true">
+    <svg viewBox="0 0 240 280"><defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#dbe6f7"/></linearGradient></defs>
+      <path d="M120 8l92 34v66c0 62-38 108-92 128C66 216 28 170 28 108V42z" fill="url(#g1)" stroke="#c9d8f0" stroke-width="2"/>
+      <path d="M78 130l30 30 56-68" fill="none" stroke="#0B5BD3" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="flota a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="18" r="2.5"/><circle cx="12" cy="5.5" r="2.5"/><path d="M12 8v3.5M7.5 16l3-4M16.5 16l-3-4"/></svg>Análisis basado en reglas</div>
+    <div class="flota b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/></svg>Resultados explicados</div>
+  </div>
+</section>
+
+<section class="seccion" aria-labelledby="t-problema">
+  <h2 id="t-problema">Por qué importa</h2>
+  <p class="intro">Una pequeña empresa suele decidir su seguridad sin un especialista a mano. Los antecedentes que sustentan este proyecto lo muestran así:</p>
+  <div class="rejilla-3">
+    <article class="tarjeta"><div class="dato">2 de 3</div><p>Las pymes aportan dos tercios del empleo mundial y, aun así, son las más vulnerables a las amenazas cibernéticas.</p><span class="fuente">Pawar y Palivela (2022)</span></article>
+    <article class="tarjeta"><div class="dato">Se sobrestima</div><p>Al contrastar lo declarado con evaluaciones de expertos, las pymes sobrestimaron de forma consistente su madurez en ciberseguridad.</p><span class="fuente">Chidukwani et al. (2026)</span></article>
+    <article class="tarjeta"><div class="dato">748,2 M</div><p>Intentos de ciberataque detectados en el Perú durante el primer semestre de 2025.</p><span class="fuente">FortiGuard Labs, citado en El Peruano (2025)</span></article>
+  </div>
+</section>
+
+<section class="seccion" id="como" aria-labelledby="t-como">
+  <h2 id="t-como">Así funciona tu evaluación</h2>
+  <p class="intro">Tres pasos, sin instalar nada y sin guardar tus respuestas.</p>
+  <div class="rejilla-3">
+    <article class="tarjeta"><div class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg></div><span class="num">01</span><h3>Responde a tu ritmo</h3><p class="suave">Describe las prácticas actuales de tu empresa. Cada pregunta trae una ayuda con un ejemplo y cómo comprobarla si no la conoces.</p></article>
+    <article class="tarjeta"><div class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg></div><span class="num">02</span><h3>Analizamos tus respuestas</h3><p class="suave">El sistema aplica reglas SI–ENTONCES de su base de conocimiento y calcula el riesgo de cada área y el riesgo global.</p></article>
+    <article class="tarjeta"><div class="icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg></div><span class="num">03</span><h3>Descubre qué mejorar</h3><p class="suave">Recibes recomendaciones ordenadas por prioridad, con la cadena de reglas que explica cada una.</p></article>
+  </div>
+  <ul class="areas-lista" aria-label="Áreas evaluadas">
+    <li>Cuentas y accesos<small>12 preguntas</small></li><li>Respaldos<small>12 preguntas</small></li><li>Correo<small>12 preguntas</small></li><li>Redes<small>12 preguntas</small></li>
+  </ul>
+</section>
+
+<section class="seccion" aria-labelledby="t-recibes">
+  <h2 id="t-recibes">Qué recibirás</h2>
+  <p class="intro">Un resultado pensado para decidir, no solo para leer.</p>
+  <ul class="entregables">
+    {% for texto in ("Nivel de riesgo de cada área y riesgo global (bajo, medio o alto).",
+                     "Recomendaciones priorizadas: alta, media o baja.",
+                     "Por qué: la respuesta, el hallazgo y la regla que produjo cada recomendación.",
+                     "Qué respuestas «No sé» conviene verificar, y cómo hacerlo.",
+                     "Un reporte imprimible para guardar como PDF o compartir.") %}
+    <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>{{ texto }}</span></li>
+    {% endfor %}
+  </ul>
+  <div class="banda">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6c-2-1.5-5-2-8-2v14c3 0 6 .5 8 2 2-1.5 5-2 8-2V4c-3 0-6 .5-8 2zM12 6v14"/></svg>
+    <p><b>Conocimiento que se puede explicar.</b> Un sistema experto conecta tus respuestas con reglas para justificar sus recomendaciones: cada regla indica su fuente.</p>
+  </div>
+</section>
+
+<section class="seccion" id="fundamento" aria-labelledby="t-fundamento">
+  <h2 id="t-fundamento">El fundamento: un sistema experto basado en reglas</h2>
+  <p class="intro">Un sistema experto emplea conocimiento especializado para resolver problemas al nivel de un experto en un dominio. Se compone, normalmente, de tres partes (Sihwi et al., 2016):</p>
+  <div class="arquitectura">
+    <div class="tarjeta"><h3>Base de conocimientos</h3><p class="suave">132 reglas SI–ENTONCES sobre 48 prácticas, cada una con su fuente y su localización.</p></div>
+    <div class="tarjeta"><h3>Motor de inferencia</h3><p class="suave">Encadenamiento hacia adelante: parte de tus respuestas y dispara las reglas que se cumplen.</p></div>
+    <div class="tarjeta"><h3>Interfaz y explicación</h3><p class="suave">Recoge los datos, presenta el resultado y muestra cómo se llegó a cada conclusión.</p></div>
+  </div>
+
+  <h2>Antecedentes</h2>
+  <p class="intro" style="margin-bottom:16px">Seis de los diez trabajos revisados en el informe, resumidos con nuestras palabras.</p>
+  <div class="rejilla-3 tres">
+    <figure class="tarjeta cita"><blockquote lang="en">Enterprises have two ways of ensuring their information security: to employ a specialist or to outsource the risk analysis service. The problem is that the price of both choices is rather high.</blockquote><p class="trad">Traducción: contratar a un especialista o tercerizar el análisis de riesgos tiene un precio elevado.</p><footer><b>Vitkus et al. (2019), p. 744</b>Base de conocimientos para el análisis de riesgos</footer></figure>
+    <figure class="tarjeta cita"><blockquote lang="en">The utilization of the expert system on risk assessment can help the decision-making process to be consistent and accurate.</blockquote><p class="trad">Traducción: usar un sistema experto en la evaluación de riesgos ayuda a que las decisiones sean consistentes y precisas.</p><footer><b>Sihwi et al. (2016), p. 1</b>Sistema experto de evaluación de riesgos (ISO 27002)</footer></figure>
+    <figure class="tarjeta cita"><blockquote lang="en">While companies often have IT staff, they are not specialized or focused on cybersecurity.</blockquote><p class="trad">Traducción: aunque las empresas suelen tener personal de TI, este no está especializado en ciberseguridad.</p><footer><b>Koeze (2017), Introducción, p. 12</b>Evaluación de riesgos cibernéticos para pymes</footer></figure>
+    <figure class="tarjeta cita"><blockquote lang="en">Small and medium sized companies (SMEs) are often insufficiently protected against cyberattacks although there is a wide range of cybersecurity guidelines, products and services available.</blockquote><p class="trad">Traducción: las pymes suelen estar insuficientemente protegidas pese a la amplia oferta de guías, productos y servicios.</p><footer><b>Fähnrich y Roßnagel (2022), Resumen, p. 131</b>Asesor de seguridad para pymes</footer></figure>
+    <figure class="tarjeta cita"><blockquote lang="en">Regardless of many existing cybersecurity standards or frameworks, SMEs are most vulnerable to cyber threats.</blockquote><p class="trad">Traducción: pese a los estándares y marcos existentes, las pymes son las más vulnerables a las ciberamenazas.</p><footer><b>Pawar y Palivela (2022), Resumen, p. 1</b>Controles de ciberseguridad para pymes</footer></figure>
+    <figure class="tarjeta cita"><blockquote lang="en">We conclude that self-reporting alone is insufficient for accurately assessing SME cybersecurity posture.</blockquote><p class="trad">Traducción: la autoevaluación por sí sola es insuficiente para medir con exactitud la postura de ciberseguridad de las pymes.</p><footer><b>Chidukwani et al. (2026), Resumen, p. 1</b>Evaluación experta de ciberseguridad en pymes</footer></figure>
+  </div>
+  <p class="aviso-citas">Citas literales en el idioma original de cada artículo, con traducción libre al español (indicada como tal). También aportan al diseño Klimeš y Bartoš (2015), Solic et al. (2015), Hibshi et al. (2016) y Ghanem et al. (2023).</p>
+</section>
+
+<section class="seccion" aria-labelledby="t-limites">
+  <h2 id="t-limites">Lo que conviene saber</h2>
+  <ul class="limites">
+    <li>El asesor <b>orienta</b>; no reemplaza a un especialista ni es una auditoría.</li>
+    <li>El resultado depende de lo que tú declaras: no comprueba técnicamente que las prácticas existan.</li>
+    <li>Cubre cuatro áreas básicas. No incluye seguridad física ni cumplimiento normativo.</li>
+    <li>El conocimiento se apoya en las fuentes del informe; no fue validado por un especialista.</li>
+  </ul>
+</section>
+
+<section class="cierre" aria-labelledby="t-cierre">
+  <h2 id="t-cierre">Empieza ahora</h2>
+  <p>Responde 48 preguntas y obtén tus prioridades de mejora. Si solo quieres ver cómo funciona, usa la demostración.</p>
+  <div class="cta" style="justify-content:center;margin:0">
+    <a class="btn grande" href="/evaluar">Evaluar mi empresa</a>
+    <a class="btn sec grande" href="/evaluar?demo=1">Ver demostración</a>
+  </div>
+</section>
+
+<section class="seccion" style="border-top:0;padding-bottom:0">
+  <details>
+    <summary>Referencias</summary>
+    <ol class="referencias">
+      <li>Chidukwani, A., Zander, S., &amp; Koutsakis, P. (2026). Beyond self-reporting: Uncovering the operational realities of SME cybersecurity through expert assessment. <i>Computers &amp; Security, 164</i>, 104839. <a href="https://doi.org/10.1016/j.cose.2026.104839">doi.org/10.1016/j.cose.2026.104839</a></li>
+      <li>El Peruano. (2025, 3 de septiembre). Ciberataques en Perú superan los 748 millones en seis meses. <a href="https://www.elperuano.pe/noticia/278133-ciberataques-en-peru">elperuano.pe</a></li>
+      <li>Fähnrich, N., &amp; Roßnagel, H. (2022). Online tool for matching company demands with IT-security offerings. <i>Open Identity Summit 2022</i> (pp. 131–136). <a href="https://doi.org/10.18420/OID2022_12">doi.org/10.18420/OID2022_12</a></li>
+      <li>Koeze, R. (2017). <i>Designing a cyber risk assessment tool for small to medium enterprises</i> [Tesis de maestría, Delft University of Technology]. <a href="https://repository.tudelft.nl/file/File_f36a0249-668e-4da9-8522-b2ab051ca144">TU Delft Repository</a></li>
+      <li>Pawar, S., &amp; Palivela, H. (2022). LCCI: A framework for least cybersecurity controls to be implemented for small and medium enterprises (SMEs). <i>International Journal of Information Management Data Insights, 2</i>(1), 100080. <a href="https://doi.org/10.1016/j.jjimei.2022.100080">doi.org/10.1016/j.jjimei.2022.100080</a></li>
+      <li>Sihwi, S. W., Andriyanto, F., &amp; Anggrainingsih, R. (2016). An expert system for risk assessment of information system security based on ISO 27002. <i>2016 IEEE ICKEA</i> (pp. 1–6). <a href="https://doi.org/10.1109/ICKEA.2016.7802992">doi.org/10.1109/ICKEA.2016.7802992</a></li>
+      <li>Vitkus, D., Steckevičius, Ž., Goranin, N., Kalibatienė, D., &amp; Čenys, A. (2019). Automated expert system knowledge base development method for information security risk analysis. <i>International Journal of Computers Communications &amp; Control, 14</i>(6), 743–758. <a href="https://doi.org/10.15837/ijccc.2019.6.3668">doi.org/10.15837/ijccc.2019.6.3668</a></li>
+    </ol>
+  </details>
+</section>
+
+<footer class="pie">
+  <span>Proyecto académico · USAT · Inteligencia Artificial</span>
+  <span>Quintana Luis, Alexis Abel · Montenegro Urrutia, Juan Diego</span>
+</footer>
+{% endblock %}

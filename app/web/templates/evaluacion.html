@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block titulo %}Evaluación · Asesor de ciberseguridad{% endblock %}
+{% block flujo %}{% with actual=2 %}{% include "_flujo.html" %}{% endwith %}{% endblock %}
+{% block contenido %}
+<h1>Evaluación de ciberseguridad</h1>
+<p class="suave">Responda las 48 preguntas sobre las prácticas de su empresa, área por área. Las respuestas no se guardan: se usan solo para calcular el resultado.</p>
+<p class="suave">¿Solo quiere ver cómo funciona? <a href="/evaluar?demo=1">Cargar el caso de demostración</a>.</p>
+{% if errores %}<div class="error" role="alert">{% for e in errores %}<div>{{ e }}</div>{% endfor %}</div>{% endif %}
+
+<details class="tarjeta" open>
+  <summary>¿Cuándo marcar cada opción?</summary>
+  <div class="guia">
+    {% for nombre, texto in guia %}<div><b>{{ nombre }}</b><br><span class="suave">{{ texto }}</span></div>{% endfor %}
+  </div>
+  <p class="suave">Cada pregunta tiene un enlace «¿Qué significa?» con un ejemplo y, si no conoce la respuesta, cómo comprobarla.</p>
+</details>
+
+<form method="post" action="/resultado" id="cuestionario">
+  <div class="tarjeta">
+    <label for="empresa"><b>Nombre de la empresa</b> <span class="suave">(opcional, solo aparece en el reporte)</span></label><br>
+    <input type="text" id="empresa" name="empresa" maxlength="80" value="{{ empresa }}">
+  </div>
+
+  <div class="progreso" id="progreso" hidden>
+    <div class="suave" id="progreso-texto"></div>
+    <div class="barra"><i id="progreso-barra"></i></div>
+  </div>
+
+  {% for area, items in grupos %}
+  <section class="tarjeta paso" data-paso="{{ loop.index0 }}">
+    <h2>{{ loop.index }}. {{ area|capitalize }}</h2>
+    {% for numero, clave, texto, aclaracion in items %}
+    <fieldset class="pregunta" data-clave="{{ clave }}" style="border:0;padding:10px 0;margin:0;min-width:0">
+      <legend style="padding:0;margin-bottom:6px">{{ numero }}. {{ texto }}</legend>
+      <div class="opciones">
+        {% for valor, nombre in opciones %}
+        <label><input type="radio" name="r_{{ clave }}" value="{{ valor }}" {{ 'checked' if respuestas.get(clave) == valor }}>{{ nombre }}</label>
+        {% endfor %}
+      </div>
+      {% if aclaracion.ejemplo %}
+      <details class="ayuda"><summary>¿Qué significa?</summary>
+        <p>{{ aclaracion.ejemplo }}</p>
+        <p><b>Si no lo sabe:</b> {{ aclaracion.verificar }}</p>
+      </details>
+      {% endif %}
+    </fieldset>
+    {% endfor %}
+  </section>
+  {% endfor %}
+
+  <section class="paso" data-paso="{{ grupos|length }}">
+    <details class="tarjeta" {{ 'open' if impactos }}>
+      <summary>Extensión opcional: impacto para el negocio</summary>
+      <p class="suave">Si valora de 1 (mínimo) a 5 (crítico) qué tan grave sería un incidente en cada área, el resultado añade bandas de riesgo y una zona de la matriz probabilidad–impacto. Déjelo vacío para el flujo principal.</p>
+      {% for area in areas %}
+      <p><label for="i_{{ area }}">{{ preguntas_impacto[area] }}</label><br>
+      <select id="i_{{ area }}" name="i_{{ area }}"><option value="">(no usar)</option>
+        {% for n in range(1, 6) %}<option value="{{ n }}" {{ 'selected' if impactos.get(area)|string == n|string }}>{{ n }}</option>{% endfor %}
+      </select></p>
+      {% endfor %}
+    </details>
+  </section>
+
+  <div class="acciones" id="navegacion">
+    <button type="button" class="btn sec" id="anterior" hidden>← Anterior</button>
+    <button type="button" id="siguiente" hidden>Siguiente →</button>
+    <button type="submit" id="enviar">Ver resultado</button>
+  </div>
+  <div class="error" id="aviso-paso" role="alert" hidden></div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* Mejora progresiva: sin JavaScript se ven las cuatro áreas juntas y el servidor valida las respuestas. */
+(function () {
+  var pasos = Array.prototype.slice.call(document.querySelectorAll('.paso'));
+  var preguntas = document.querySelectorAll('fieldset.pregunta');
+  var total = preguntas.length, actual = 0;
+  var porArea = pasos.length - 1;               /* el último paso es la extensión opcional */
+  var ant = document.getElementById('anterior'), sig = document.getElementById('siguiente');
+  var enviar = document.getElementById('enviar'), aviso = document.getElementById('aviso-paso');
+  var barra = document.getElementById('progreso-barra'), texto = document.getElementById('progreso-texto');
+  document.getElementById('progreso').hidden = false;
+
+  function respondidas() {
+    var n = 0;
+    preguntas.forEach(function (p) { if (p.querySelector('input:checked')) n++; });
+    return n;
+  }
+  function pendientes(paso) {
+    return Array.prototype.filter.call(pasos[paso].querySelectorAll('fieldset.pregunta'),
+      function (p) { return !p.querySelector('input:checked'); });
+  }
+  function actualizar() {
+    var n = respondidas();
+    barra.style.width = (100 * n / total) + '%';
+    texto.textContent = (actual < porArea ? 'Área ' + (actual + 1) + ' de ' + porArea + ' · ' : 'Último paso · ') +
+      n + ' de ' + total + ' preguntas respondidas';
+    pasos.forEach(function (p, i) { p.classList.toggle('paso-oculto', i !== actual); });
+    ant.hidden = actual === 0;
+    sig.hidden = actual === pasos.length - 1;
+    enviar.hidden = actual !== pasos.length - 1;
+  }
+  function ir(destino) {
+    actual = destino; aviso.hidden = true; actualizar();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  sig.addEventListener('click', function () {
+    var faltan = actual < porArea ? pendientes(actual) : [];
+    preguntas.forEach(function (p) { p.classList.remove('pendiente'); });
+    if (faltan.length) {
+      faltan.forEach(function (p) { p.classList.add('pendiente'); });
+      aviso.textContent = 'Falta responder ' + faltan.length + ' pregunta(s) de esta área. Si no conoce la respuesta, marque «No sé».';
+      aviso.hidden = false; faltan[0].scrollIntoView({ block: 'center', behavior: 'smooth' });
+      return;
+    }
+    ir(actual + 1);
+  });
+  ant.addEventListener('click', function () { ir(actual - 1); });
+  document.getElementById('cuestionario').addEventListener('change', actualizar);
+  document.getElementById('cuestionario').addEventListener('submit', function (e) {
+    for (var i = 0; i < porArea; i++) {
+      var faltan = pendientes(i);
+      if (faltan.length) {
+        e.preventDefault(); actual = i; actualizar();
+        faltan.forEach(function (p) { p.classList.add('pendiente'); });
+        aviso.textContent = 'Falta responder ' + faltan.length + ' pregunta(s) en el área ' + (i + 1) + '.';
+        aviso.hidden = false; faltan[0].scrollIntoView({ block: 'center' });
+        return;
+      }
+    }
+  });
+  /* Con respuestas precargadas (demo o error del servidor) se empieza en el último paso. */
+  actual = respondidas() === total ? pasos.length - 1 : 0;
+  actualizar();
+})();
+</script>
+{% endblock %}

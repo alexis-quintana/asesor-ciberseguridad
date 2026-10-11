@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block titulo %}Mantenimiento de reglas · Asesor de ciberseguridad{% endblock %}
+{% block contenido %}
+<h1>Mantenimiento de reglas</h1>
+<p class="suave">Cambie el conocimiento del asesor sin tocar el código. Los cambios se guardan aparte de la base original, se registran en el historial y se aplican de inmediato al motor, a la lista priorizada, a la explicación y al reporte.</p>
+{% if mensaje %}<div class="ok" role="status">{{ mensaje }}</div>{% endif %}
+{% if error %}<div class="error" role="alert">{{ error }}</div>{% endif %}
+
+<form method="post" action="/admin/salir" class="acciones"><input type="hidden" name="csrf" value="{{ csrf }}">
+  <a class="btn sec" href="/">Volver al inicio</a><button type="submit" class="btn sec">Cerrar sesión</button></form>
+
+<details class="tarjeta" {{ 'open' if form }}>
+  <summary>Agregar una regla nueva (será la {{ siguiente }})</summary>
+  <p class="suave">Una regla nueva concluye una recomendación cuando se cumplen todas sus condiciones. Debe citar una de las fuentes registradas y su localización. Valores: respuestas = si, no, parcialmente, no_se · hallazgo_… = verdadero o falso · nivel_p_… = bajo, medio, alto · contadores = número.</p>
+  <form method="post" action="/admin/nueva">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <p><b>SI</b> (deje vacías las filas que no use)</p>
+    {% for i in filas_condiciones %}
+    <div class="rejilla">
+      <label>Hecho
+        <select name="hecho_{{ i }}"><option value=""></option>
+          {% for h, info in hechos.items() %}<option value="{{ h }}" {{ 'selected' if form.get('hecho_' ~ i) == h }}>{{ h }}</option>{% endfor %}
+        </select></label>
+      <label>Operador
+        <select name="operador_{{ i }}">{% for op, nombre in operadores %}<option value="{{ op }}" {{ 'selected' if form.get('operador_' ~ i) == op }}>{{ nombre }}</option>{% endfor %}</select></label>
+      <label>Valor <input type="text" name="valor_{{ i }}" value="{{ form.get('valor_' ~ i, '') }}" maxlength="80"></label>
+    </div>
+    {% endfor %}
+    <p><b>ENTONCES recomendar</b></p>
+    <label>Texto de la recomendación<textarea name="texto" rows="2" maxlength="300" required>{{ form.get('texto', '') }}</textarea></label>
+    <div class="rejilla">
+      <label>Área
+        <select name="area">{% for a in areas %}<option value="{{ a }}" {{ 'selected' if form.get('area') == a }}>{{ a }}</option>{% endfor %}</select></label>
+      <label>Prioridad (la asigna el administrador)
+        <select name="prioridad">{% for p in prioridades %}<option value="{{ p }}" {{ 'selected' if form.get('prioridad', 'media') == p }}>{{ p }}</option>{% endfor %}</select></label>
+      <label>Estado de validación
+        <select name="validacion_experto">{% for e in estados %}<option value="{{ e }}" {{ 'selected' if form.get('validacion_experto') == e }}>{{ e }}</option>{% endfor %}</select></label>
+    </div>
+    <div class="rejilla">
+      <label>Fuente
+        <select name="fuente_id">{% for id, f in fuentes.items() %}<option value="{{ id }}" {{ 'selected' if form.get('fuente_id') == id }}>{{ f.autores.split(' y ')[0] }} ({{ f.anio }})</option>{% endfor %}</select></label>
+      <label>Localización (sección o página)<input type="text" name="localizacion" value="{{ form.get('localizacion', '') }}" maxlength="200" required></label>
+    </div>
+    <label>Evidencia de la fuente (qué afirma y por qué respalda la regla)<textarea name="evidencia" rows="2" maxlength="500" required>{{ form.get('evidencia', '') }}</textarea></label>
+    <label>Explicación para el usuario (opcional)<textarea name="explicacion" rows="2" maxlength="500">{{ form.get('explicacion', '') }}</textarea></label>
+    <div class="acciones"><button type="submit">Agregar regla</button></div>
+  </form>
+</details>
+
+<div class="tarjeta">
+  <h2>Reglas ({{ filas|length }})</h2>
+  <form method="get" action="/admin" class="acciones">
+    <label for="etapa">Etapa:</label>
+    <select id="etapa" name="etapa" onchange="this.form.submit()">
+      <option value="">todas</option>{% for e in etapas %}<option value="{{ e }}" {{ 'selected' if e == filtro }}>{{ e }}</option>{% endfor %}
+    </select><noscript><button type="submit">Filtrar</button></noscript>
+  </form>
+  <table>
+    <tr><th>Regla</th><th>Etapa</th><th>Contenido</th><th>Estado</th><th>Acciones</th></tr>
+    {% for f in filas %}
+    <tr>
+      <td><b>{{ f.id }}</b></td><td>{{ f.etapa }}<br><span class="suave">{{ f.area }}</span></td>
+      <td class="mono">{{ formal(f.regla) }}</td>
+      <td>{% if f.desactivada %}<span class="chip">desactivada</span>{% elif f.es_nueva %}<span class="chip">nueva</span>{% elif f.editada %}<span class="chip">editada</span>{% else %}<span class="chip">base</span>{% endif %}</td>
+      <td>
+        <a href="/admin/regla/{{ f.id }}">Editar</a>
+        {% if f.desactivada %}
+        <form method="post" action="/admin/regla/{{ f.id }}/activar"><input type="hidden" name="csrf" value="{{ csrf }}"><button type="submit" class="btn sec">Activar</button></form>
+        {% elif f.desactivable %}
+        <form method="post" action="/admin/regla/{{ f.id }}/desactivar"><input type="hidden" name="csrf" value="{{ csrf }}">
+          <input type="text" name="motivo" placeholder="Motivo" required maxlength="300"><button type="submit" class="btn sec">Desactivar</button></form>
+        {% endif %}
+        {% if f.es_nueva %}
+        <form method="post" action="/admin/regla/{{ f.id }}/eliminar"><input type="hidden" name="csrf" value="{{ csrf }}"><button type="submit" class="btn sec">Eliminar</button></form>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p class="suave">Las reglas del núcleo del modelo (R097–R108, R126–R132 y la extensión) no se pueden desactivar; solo se puede ajustar su evidencia, fuente y estado de validación. Las reglas de la base nunca se borran: se desactivan.</p>
+</div>
+
+<div class="tarjeta">
+  <h2>Historial de cambios</h2>
+  {% if historial %}
+  <table><tr><th>Fecha</th><th>Acción</th><th>Regla</th><th>Detalle</th></tr>
+  {% for h in historial %}<tr><td>{{ h.fecha }}</td><td>{{ h.accion }}</td><td>{{ h.regla }}</td><td>{{ h.detalle }}</td></tr>{% endfor %}
+  </table>
+  {% else %}<p class="suave">Todavía no hay cambios.</p>{% endif %}
+</div>
+{% endblock %}

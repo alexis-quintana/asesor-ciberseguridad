@@ -41,7 +41,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from .base_conocimientos import RESPUESTAS, VARIABLES
+from app.conocimiento.base_conocimientos import RESPUESTAS, VARIABLES
 
 # Sihwi et al. (2016), §II.D, p. 3: rangos bajo 0–33, medio 34–66, alto 67–100.
 # Punto medio de cada rango (adaptación del equipo). «no_se» puntúa como «no»

@@ -2,7 +2,7 @@
 
 import unittest
 
-from asesor.base_conocimientos import REGLAS, VARIABLES, verificar_base
+from app.conocimiento.base_conocimientos import REGLAS, VARIABLES, verificar_base
 
 
 class PruebasBase(unittest.TestCase):

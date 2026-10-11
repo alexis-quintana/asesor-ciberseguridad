@@ -9,14 +9,14 @@ import itertools
 import random
 import unittest
 
-from asesor.base_conocimientos import VARIABLES
-from asesor.base_reglas_riesgo import (
+from app.conocimiento.base_conocimientos import VARIABLES
+from app.conocimiento.base_reglas_riesgo import (
     AMBITOS, REGLAS_RIESGO, REGLAS_RIESGO_GENERICAS, verificar_reglas_riesgo,
 )
-from asesor.explicacion import formatear_regla
-from asesor.memoria import MemoriaTrabajo
-from asesor.motor import inferir
-from asesor.riesgo import AREAS, evaluar_riesgo, riesgo_desde_hechos
+from app.resultados.explicacion import formatear_regla
+from app.inferencia.memoria import MemoriaTrabajo
+from app.inferencia.motor import inferir
+from app.inferencia.riesgo import AREAS, evaluar_riesgo, riesgo_desde_hechos
 
 
 def correr(respuestas, impactos):

@@ -8,8 +8,8 @@ Fuente: Ghanem et al. (2023), §III.B, p. 6 (ESASCF, representación de hechos).
 
 from __future__ import annotations
 
-from .base_conocimientos import RESPUESTAS, VARIABLES
-from .riesgo import AREAS, validar_impactos
+from app.conocimiento.base_conocimientos import RESPUESTAS, VARIABLES
+from app.inferencia.riesgo import AREAS, validar_impactos
 
 
 class MemoriaTrabajo:

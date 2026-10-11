@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block titulo %}Administración · Asesor de ciberseguridad{% endblock %}
+{% block contenido %}
+<h1>Mantenimiento de reglas</h1>
+{% if error %}<div class="error" role="alert">{{ error }}</div>{% endif %}
+{% if crear %}
+<div class="nota"><b>Primer uso.</b> Cree la clave del administrador. Solo quien la conozca podrá desactivar, editar o agregar reglas. Se guarda cifrada (no en texto plano) en la carpeta <span class="mono">datos/</span>.</div>
+{% if local %}
+<form method="post" action="/admin/crear-clave" class="tarjeta">
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  <p><label for="clave"><b>Nueva clave</b> (mínimo {{ minimo }} caracteres)</label><br>
+  <input type="password" id="clave" name="clave" autocomplete="new-password" minlength="{{ minimo }}" required></p>
+  <p><label for="confirmacion"><b>Repita la clave</b></label><br>
+  <input type="password" id="confirmacion" name="confirmacion" autocomplete="new-password" minlength="{{ minimo }}" required></p>
+  <button type="submit">Crear clave y entrar</button>
+</form>
+{% else %}
+<div class="error">La clave solo puede crearse desde el equipo donde corre el asesor.</div>
+{% endif %}
+{% else %}
+<form method="post" action="/admin/entrar" class="tarjeta">
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  <p><label for="clave"><b>Clave del administrador</b></label><br>
+  <input type="password" id="clave" name="clave" autocomplete="current-password" required></p>
+  <button type="submit">Entrar</button>
+</form>
+{% endif %}
+<p><a href="/">← Volver al inicio</a></p>
+{% endblock %}

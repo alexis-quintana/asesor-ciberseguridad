@@ -17,7 +17,7 @@ y se expanden a los 48 controles (R126:<control>).
 
 from __future__ import annotations
 
-from .base_conocimientos import FUENTES, VARIABLES
+from app.conocimiento.base_conocimientos import FUENTES, VARIABLES
 
 _FUENTES = [{"id": "SIHWI_2016",
              "localizacion": "Tabla III, p. 3 (matriz de 9 categorías); §II.D, p. 4 (interpretación)"}]

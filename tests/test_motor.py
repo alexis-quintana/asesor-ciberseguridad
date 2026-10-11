@@ -10,12 +10,12 @@ si P < 34, medio si P < 67, alto si P ≥ 67; «si» = 16,5, «parcialmente» = 
 
 import unittest
 
-from asesor.base_conocimientos import VARIABLES
-from asesor.explicacion import formatear_regla
-from asesor.interfaz_consola import CASO_DEMO, IMPACTOS_DEMO
-from asesor.memoria import MemoriaTrabajo
-from asesor.motor import inferir
-from asesor.riesgo import AREAS
+from app.conocimiento.base_conocimientos import VARIABLES
+from app.resultados.explicacion import formatear_regla
+from app.consola import CASO_DEMO, IMPACTOS_DEMO
+from app.inferencia.memoria import MemoriaTrabajo
+from app.inferencia.motor import inferir
+from app.inferencia.riesgo import AREAS
 
 
 def caso(**cambios):
@@ -198,7 +198,9 @@ class PruebasCasoDemostracion(unittest.TestCase):
         self.assertAlmostEqual(h["p_redes"], 332 / 12, places=6)
         self.assertEqual([h[f"nivel_p_{a}"] for a in AREAS], ["alto", "alto", "medio", "bajo"])
         self.assertEqual(resultado.riesgo_global, "alto")
-        self.assertEqual(len(resultado.hallazgos), 25)
+        # Hallazgos: cuentas 9 «no» + mfa_cobertura «parcialmente» = 10; respaldos 9 + 1 = 10;
+        # correo 4 (el «no sé» no genera hallazgo); redes 2 → 26.
+        self.assertEqual(len(resultado.hallazgos), 26)
         self.assertEqual(resultado.verificaciones_solicitadas, ["correo"])
 
     def test_extension_con_impactos(self):

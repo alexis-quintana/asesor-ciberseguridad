@@ -6,8 +6,8 @@ Los valores esperados se calcularon a mano con las fórmulas de Sihwi et al.
 
 import unittest
 
-from asesor.base_conocimientos import VARIABLES
-from asesor.riesgo import (
+from app.conocimiento.base_conocimientos import VARIABLES
+from app.inferencia.riesgo import (
     AREAS, banda_koeze, evaluar_riesgo, nivel_sihwi, zona_sihwi,
 )
 

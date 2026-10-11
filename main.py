@@ -1,14 +1,11 @@
-"""Punto de entrada: ejecuta la interfaz de consola del asesor.
+"""Punto de entrada: ejecuta el asesor (consola o web).
 
-Uso: python main.py [--demo] [--explicar]
+Uso: python main.py [--demo] [--explicar] [--con-impacto] [--web]
 """
 
-import os
 import sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
-
-from asesor.interfaz_consola import main  # noqa: E402
+from app.consola import main
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -14,9 +14,11 @@ from __future__ import annotations
 from datetime import datetime
 from html import escape
 
-from .explicacion import formatear_regla
-from .priorizacion import lista_priorizada
-from .riesgo import AREAS, riesgo_desde_hechos
+from app.conocimiento.ayudas import ayuda
+from app.conocimiento.base_conocimientos import VARIABLES
+from app.resultados.explicacion import explicar
+from app.inferencia.priorizacion import lista_priorizada
+from app.inferencia.riesgo import AREAS, riesgo_desde_hechos
 
 # Límites del sistema (sección 3.8 del informe). Se muestran en la web, en el
 # reporte y en la consola.
@@ -24,7 +26,8 @@ AVISO_LIMITES = (
     "Este resultado orienta y no reemplaza a un especialista ni a una auditoría; "
     "un riesgo bajo no garantiza que la empresa esté protegida.",
     "Las respuestas son autodeclaradas y pueden sobrestimar la seguridad real "
-    "(Chidukwani et al., 2026); las respuestas «no sé» se contaron como «no».",
+    "(Chidukwani et al., 2026); las respuestas «no sé» se contaron como «no» solo para "
+    "calcular el riesgo, sin afirmar que falte la práctica.",
     "El conocimiento proviene de la literatura revisada y no fue validado por un "
     "experto en ciberseguridad.",
     "La prioridad no considera el costo ni el esfuerzo de cada medida.",
@@ -46,12 +49,38 @@ pre{white-space:pre-wrap;font-size:.78rem;background:#f6f6f6;padding:8px;border:
 """
 
 
-def _texto_explicacion(resultado):
-    lineas = []
-    for n, d in enumerate(resultado.disparos, start=1):
-        lineas.append(f"{n}. {d.id} [{d.etapa}] {formatear_regla(d.regla)}")
-        lineas.append(f"   Motivo: {d.explicacion}")
-    return "\n".join(lineas)
+def mensaje_sin_recomendaciones(resultado):
+    """Texto para cuando no hay recomendaciones; None si las hay.
+
+    No afirma que «todo está implementado» cuando hay respuestas «no sé»: una
+    respuesta desconocida no produce hallazgo, pero tampoco demuestra cumplimiento.
+    """
+    if resultado.prioridades or resultado.recomendaciones_adicionales:
+        return None
+    desconocidas = resultado.hechos.get("respuestas_desconocidas", 0)
+    if desconocidas:
+        return (f"No se generaron recomendaciones porque no hubo respuestas «No» ni "
+                f"«Parcialmente». Hay {desconocidas} respuesta(s) «No sé»: no permiten saber "
+                "qué falta, pero se contaron como «No» al calcular el riesgo. "
+                "Verifíquelas con las indicaciones de abajo.")
+    return ("Según sus respuestas, todas las prácticas evaluadas están implementadas («Sí»). "
+            "Esto no garantiza que la empresa esté protegida.")
+
+
+def verificaciones_concretas(resultado):
+    """Preguntas contestadas «no sé», por área, con cómo verificarlas.
+
+    Devuelve [{"area", "preguntas": [{"clave", "pregunta", "verificar"}]}] en el orden
+    del cuestionario, solo para las áreas con respuestas «no sé».
+    """
+    grupos = []
+    for area in AREAS:
+        preguntas = [{"clave": c, "pregunta": v["pregunta"], "verificar": ayuda(c)["verificar"]}
+                     for c, v in VARIABLES.items()
+                     if v["area"] == area and resultado.hechos.get(c) == "no_se"]
+        if preguntas:
+            grupos.append({"area": area, "preguntas": preguntas})
+    return grupos
 
 
 def generar_reporte_html(resultado, empresa="", incluir_explicacion=True, fecha=None):
@@ -92,13 +121,17 @@ def generar_reporte_html(resultado, empresa="", incluir_explicacion=True, fecha=
                           f"<td>{e(i['pregunta'])}</td></tr>")
         partes.append("</table>")
     else:
-        partes.append("<p>No se encontraron hallazgos: todas las prácticas evaluadas están implementadas.</p>")
+        partes.append(f"<p>{e(mensaje_sin_recomendaciones(resultado))}</p>")
 
     partes.append("<h2>3. Respuestas por verificar</h2>")
     if resultado.verificaciones_solicitadas:
-        partes.append("<ul>" + "".join(
-            f"<li>Verificar las respuestas «no sé» del área {e(a)}; se contaron como «no» "
-            "para ser conservadores.</li>" for a in resultado.verificaciones_solicitadas) + "</ul>")
+        partes.append("<p>Estas respuestas «no sé» se contaron como «no» solo para calcular "
+                      "el riesgo, sin afirmar que falte la práctica. Verifíquelas así:</p><ul>")
+        for grupo in verificaciones_concretas(resultado):
+            partes.append(f"<li><b>{e(grupo['area'].capitalize())}</b><ul>" + "".join(
+                f"<li>{e(p['pregunta'])} <i>{e(p['verificar'])}</i></li>"
+                for p in grupo["preguntas"]) + "</ul></li>")
+        partes.append("</ul>")
     else:
         partes.append("<p>No hay respuestas «no sé».</p>")
 
@@ -118,6 +151,6 @@ def generar_reporte_html(resultado, empresa="", incluir_explicacion=True, fecha=
     if incluir_explicacion:
         partes.append("<h2 class='salto'>Anexo. Reglas aplicadas</h2>"
                       "<p class='meta'>Cada regla indica sus condiciones, su conclusión y su fuente.</p>"
-                      f"<pre>{e(_texto_explicacion(resultado))}</pre>")
+                      f"<pre>{e(explicar(resultado))}</pre>")
     partes.append("</body></html>")
     return "".join(partes)

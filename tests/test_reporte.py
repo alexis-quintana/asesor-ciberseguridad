@@ -3,9 +3,10 @@
 import unittest
 from datetime import datetime
 
-from asesor.caso import evaluar
-from asesor.interfaz_consola import CASO_DEMO, IMPACTOS_DEMO
-from asesor.reporte import AVISO_LIMITES, generar_reporte_html
+from app.inferencia.caso import evaluar
+from app.consola import CASO_DEMO, IMPACTOS_DEMO
+from app.resultados.reporte import AVISO_LIMITES, generar_reporte_html
+
 
 FECHA = datetime(2026, 10, 7)
 
@@ -23,11 +24,12 @@ class PruebasReporte(unittest.TestCase):
                           "<td>44.4</td><td class='nivel'>Medio</td>",
                           "<td>27.7</td><td class='nivel'>Bajo</td>"):
             self.assertIn(fragmento, html)
-        # 25 filas de recomendaciones numeradas y la primera es de prioridad alta.
+        # 26 filas de recomendaciones: 18 altas, 6 medias y 2 bajas.
         self.assertEqual(html.count("<td class='nivel'>Alta</td>"), 18)
-        self.assertEqual(html.count("<td class='nivel'>Media</td>"), 5)
+        self.assertEqual(html.count("<td class='nivel'>Media</td>"), 6)
         self.assertEqual(html.count("<td class='nivel'>Baja</td>"), 2)
-        self.assertIn("Verificar las respuestas «no sé» del área correo", html)
+        self.assertIn("Verifíquelas así", html)
+        self.assertIn("¿Se ha comprobado que el filtro de correo declarado realmente funciona?", html)
         self.assertNotIn("Extensión", html)
 
     def test_incluye_aviso_y_explicacion(self):
@@ -47,9 +49,17 @@ class PruebasReporte(unittest.TestCase):
 
     def test_sin_hallazgos(self):
         html = generar_reporte_html(evaluar({c: "si" for c in CASO_DEMO}), fecha=FECHA)
-        self.assertIn("No se encontraron hallazgos", html)
+        self.assertIn("todas las prácticas evaluadas están implementadas", html)
         self.assertIn("No hay respuestas «no sé»", html)
         self.assertIn("Riesgo global: <span class='nivel'>Bajo</span>", html)
+
+    def test_no_se_no_afirma_que_todo_esta_implementado(self):
+        resultado = evaluar({c: "no_se" for c in CASO_DEMO})
+        html = generar_reporte_html(resultado, fecha=FECHA)
+        self.assertNotIn("están implementadas", html)
+        self.assertIn("48 respuesta(s) «No sé»", html)
+        self.assertIn("Riesgo global: <span class='nivel'>Alto</span>", html)
+        self.assertIn("solo para calcular el riesgo", html)
 
     def test_evaluar_exige_las_48_respuestas(self):
         with self.assertRaises(ValueError):
