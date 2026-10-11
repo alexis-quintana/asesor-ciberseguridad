@@ -36,6 +36,8 @@ python main.py --demo       # caso fijo de ejemplo, sin pedir respuestas
 python main.py --explicar   # muestra además las reglas SI-ENTONCES disparadas
 python main.py --con-impacto  # extensión: pide el impacto por área y muestra bandas y zona
 python main.py --web        # interfaz web en http://127.0.0.1:5000 (opción --puerto N)
+python main.py --validar    # ejecuta los 50 casos de prueba: exactitud, cobertura y consistencia
+python main.py --verificar  # busca reglas redundantes, conflictivas, circulares y sin salida
 ```
 
 La web sigue el flujo Presentación → Evaluación → Resultados: `/` es una landing opcional (contexto, uso, fundamento y antecedentes), `/evaluar` el cuestionario y `/resultado` el diagnóstico. Los estilos están en `app/web/static/css/style.css`.
@@ -51,8 +53,11 @@ Se entra con el botón «⚙ Administrar reglas» de la cabecera de la web. La p
 
 ## Pruebas
 ```
-python -m unittest        # desde la raíz del proyecto (140 pruebas)
+python -m unittest        # desde la raíz del proyecto (157 pruebas)
 ```
+
+## Validación
+`python main.py --validar` compara el sistema con los resultados esperados de `tests/casos/casos_prueba.csv` (50 casos: 12 de las fuentes, 18 límite y 20 mixtos). Los esperados los calcula `tests/oraculo.py`, que no usa el motor; `python -m tests.generar_casos` regenera el archivo. El detalle queda en `docs/validacion/` (resultados por caso, resumen y verificación de la base).
 
 ## Estructura
 ```
@@ -66,11 +71,15 @@ asesor-ciberseguridad/
 │   │   ├── templates/           base, landing, evaluación, resultados y panel de reglas
 │   │   ├── rutas.py             rutas públicas y de administración
 │   │   └── __init__.py          creación y configuración de la aplicación
+│   ├── validacion.py            validación con los 50 casos (--validar)
+│   ├── verificacion.py          redundancias, conflictos, ciclos y reglas sin salida (--verificar)
 │   └── consola.py               interfaz de consola
 ├── datos/                       cambios del administrador (se generan al usar el panel; no se suben a git)
-├── docs/                        trazabilidad regla–fuente y guía de la exposición
+├── docs/                        trazabilidad regla–fuente, guía de la exposición y resultados de la validación
 ├── tests/
-│   └── casos/                   casos de prueba (casos_prueba.csv)
+│   ├── casos/                   50 casos de prueba con resultado esperado (casos_prueba.csv)
+│   ├── oraculo.py               cálculo independiente de los resultados esperados
+│   └── generar_casos.py         genera casos_prueba.csv
 ├── main.py                      punto de entrada (consola y --web)
 ├── ejecutar.bat                 prepara el entorno y ejecuta el asesor (Windows)
 ├── requirements.txt

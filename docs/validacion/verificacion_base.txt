@@ -1,0 +1,12 @@
+Verificación de la base de conocimientos
+========================================
+Reglas revisadas (instancias): 469
+Redundancias (duplicadas o subsumidas): 0
+Conflictos sin resolver (misma etapa): 0
+Correcciones entre etapas (una regla posterior sustituye el valor): 24 pares de instancias (reglas R128→R132, R131→R132)
+Ciclos entre reglas: 0
+Autorreferencias benignas: 12 (R132:acceso_datos_criticos, R132:aplicacion_publica, R132:copia_aplicacion_critica …)
+Autorreferencias dudosas: 0
+Reglas sin salida: 0
+Reglas inalcanzables: 0
+Resultado: sin problemas sin explicar.

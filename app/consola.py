@@ -2,7 +2,7 @@
 
 Presenta las preguntas por área, recoge las respuestas y muestra el nivel de
 riesgo de cada área, el riesgo global y las recomendaciones priorizadas, con su
-explicación. Se ejecuta con: python main.py [--demo] [--explicar] [--con-impacto]
+explicación. Se ejecuta con: python main.py [--demo] [--explicar] [--con-impacto] [--validar] [--verificar]
 La opción --web abre en su lugar la interfaz web (Flask) en http://127.0.0.1:5000.
 
 La opción --con-impacto activa la extensión de investigación (impacto por área,
@@ -155,9 +155,20 @@ def main(argv=None):
                         help="extensión: pide el impacto por área y muestra bandas y zona")
     parser.add_argument("--web", action="store_true",
                         help="inicia la interfaz web (requiere Flask) en lugar de la consola")
+    parser.add_argument("--validar", action="store_true",
+                        help="ejecuta los 50 casos de prueba y calcula exactitud, cobertura y consistencia")
+    parser.add_argument("--verificar", action="store_true",
+                        help="busca reglas redundantes, conflictivas, circulares y sin salida")
     parser.add_argument("--puerto", type=int, default=5000,
                         help="puerto de la interfaz web (por defecto 5000)")
     args = parser.parse_args(argv)
+
+    if args.verificar:
+        from app.verificacion import main as verificar_base_completa
+        return verificar_base_completa()
+    if args.validar:
+        from app.validacion import main as validar_casos
+        return validar_casos()
 
     if args.web:
         try:

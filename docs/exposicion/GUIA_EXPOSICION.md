@@ -29,7 +29,7 @@ Si falla la web: `python main.py --demo --explicar` muestra lo mismo por consola
 ## 3. Cifras para tener a mano
 - 4 áreas, 48 controles, **132 reglas** (96 de plantilla y 36 de lógica propia), 10 fuentes.
 - Caso de demostración: 26 hallazgos; riesgo global alto (cuentas 69.5 y respaldos 69.5 altos, correo 44.4 medio, redes 27.7 bajo).
-- 140 pruebas automatizadas (`python -m unittest`).
+- 157 pruebas automatizadas (`python -m unittest`) y 50 casos de validación (`python main.py --validar`): exactitud 100 %, cobertura 132/132 reglas, consistencia 100 %.
 - Decisiones del equipo (decirlas con franqueza): «No sé» cuenta como «No»; la lista de 12 controles esenciales y el piso «media» de R132 son criterio del equipo; no hay validación por un experto, la validación se apoya en las fuentes.
 
 ## 4. Preguntas probables
