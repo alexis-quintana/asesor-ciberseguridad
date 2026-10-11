@@ -46,7 +46,7 @@ class PruebasAdmin(unittest.TestCase):
     def test_hay_que_iniciar_sesion(self):
         r = self.cliente.get("/admin")
         self.assertEqual(r.status_code, 200)
-        self.assertIn("Clave del administrador", r.data.decode())
+        self.assertIn("Clave de acceso", r.data.decode())
         self.assertNotIn("Historial de cambios", r.data.decode())
         for ruta in ("/admin/regla/R002", ):
             self.assertEqual(self.cliente.get(ruta).status_code, 302)
@@ -62,6 +62,28 @@ class PruebasAdmin(unittest.TestCase):
         # Tras 5 fallos seguidos se bloquea, incluso con la clave correcta.
         r = self.cliente.post("/admin/entrar", data={"clave": CLAVE})
         self.assertEqual(r.status_code, 429)
+
+    def test_pantalla_de_acceso_y_mensajes(self):
+        html = self.cliente.get("/admin").data.decode()
+        for texto in ("Acceso de administrador", "Introduce tu clave para gestionar las reglas del sistema",
+                      "Clave de acceso", "Acceder", "Mostrar clave", "Volver al inicio"):
+            self.assertIn(texto, html)
+        self.assertNotIn(CLAVE, html)
+        vacio = self.cliente.post("/admin/entrar", data={"clave": "  "})
+        self.assertEqual(vacio.status_code, 400)
+        self.assertIn("Introduce tu clave de acceso", vacio.data.decode())
+        mala = self.cliente.post("/admin/entrar", data={"clave": "mala"})
+        self.assertEqual(mala.status_code, 401)
+        self.assertIn("La clave ingresada no es correcta", mala.data.decode())
+        self.assertEqual(self.cliente.get("/admin/regla/R002").status_code, 302)
+
+    def test_cerrar_sesion_protege_de_nuevo(self):
+        csrf = self.entrar()
+        self.assertIn("Cerrar sesión", self.cliente.get("/admin").data.decode())
+        self.assertEqual(self.cliente.get("/admin/regla/R002").status_code, 200)
+        self.assertEqual(self.cliente.post("/admin/salir", data={"csrf": csrf}).status_code, 302)
+        self.assertEqual(self.cliente.get("/admin/regla/R002").status_code, 302)
+        self.assertIn("Clave de acceso", self.cliente.get("/admin").data.decode())
 
     def test_panel_lista_reglas_y_cabeceras(self):
         self.entrar()
@@ -156,7 +178,7 @@ class PruebasAdmin(unittest.TestCase):
     def test_cerrar_sesion(self):
         csrf = self.entrar()
         self.cliente.post("/admin/salir", data={})
-        self.assertIn("Clave del administrador", self.cliente.get("/admin").data.decode())
+        self.assertIn("Clave de acceso", self.cliente.get("/admin").data.decode())
 
     def test_el_resultado_publico_no_requiere_clave(self):
         r = self.cliente.post("/resultado", data=formulario())
@@ -219,7 +241,7 @@ class PruebasCrearClave(unittest.TestCase):
         # una sesión nueva debe iniciar con esa clave
         otro = create_app().test_client()
         html = otro.get("/admin").data.decode()
-        self.assertIn("Clave del administrador", html)
+        self.assertIn("Clave de acceso", html)
         t2 = re.search(r'name="csrf" value="([0-9a-f]+)"', html).group(1)
         self.assertEqual(otro.post("/admin/entrar", data={"csrf": t2, "clave": "otra"}).status_code, 401)
         self.assertEqual(otro.post("/admin/entrar", data={"csrf": t2, "clave": "mi-clave-segura"}).status_code, 302)

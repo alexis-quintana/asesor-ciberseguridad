@@ -107,7 +107,7 @@ def registrar_rutas(app):
     @app.get("/")
     def landing():
         """Presentación opcional del sistema: contexto, uso y antecedentes."""
-        return render_template("landing.html")
+        return render_template("landing.html", n_preguntas=len(VARIABLES), n_areas=len(AREAS))
 
     @app.get("/evaluar")
     def inicio():
@@ -157,10 +157,10 @@ def registrar_rutas(app):
     def autenticado():
         return clave_configurada() and session.get("admin") is True
 
-    def pagina_login(error="", estado=200, crear=None):
+    def pagina_login(error="", estado=200, crear=None, error_clave=""):
         crear = (not clave_configurada()) if crear is None else crear
         return render_template("admin_login.html", crear=crear, local=es_local(),
-                               csrf=token_csrf(), error=error,
+                               csrf=token_csrf(), error=error, error_clave=error_clave,
                                minimo=mantenimiento.ClaveAdmin.LARGO_MINIMO), estado
 
     def token_csrf():
@@ -231,7 +231,10 @@ def registrar_rutas(app):
             abort(404)
         if time.time() < intentos["hasta"]:
             return pagina_login("Demasiados intentos fallidos. Espere un minuto.", 429)
-        if clave_correcta(request.form.get("clave", "")):
+        enviada = request.form.get("clave", "")
+        if not enviada.strip():            # campo vacío: no cuenta como intento fallido
+            return pagina_login(error_clave="Introduce tu clave de acceso", estado=400)
+        if clave_correcta(enviada):
             intentos["fallos"] = 0
             session.clear()
             session["admin"] = True
@@ -241,7 +244,7 @@ def registrar_rutas(app):
         if intentos["fallos"] >= MAX_FALLOS:
             intentos["fallos"] = 0
             intentos["hasta"] = time.time() + BLOQUEO_SEGUNDOS
-        return pagina_login("Clave incorrecta.", 401)
+        return pagina_login(error_clave="La clave ingresada no es correcta", estado=401)
 
     @app.post("/admin/salir")
     def admin_salir():

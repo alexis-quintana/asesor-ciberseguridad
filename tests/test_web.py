@@ -27,7 +27,7 @@ class PruebasWeb(unittest.TestCase):
     def test_formulario_con_las_48_preguntas(self):
         r = self.cliente.get("/evaluar")
         self.assertEqual(r.status_code, 200)
-        self.assertEqual(r.data.count(b'type="radio"'), 48 * 4)
+        self.assertEqual(r.data.count(b'type="radio"'), 48 * 4 + 4 * 5)   # 48 preguntas + matriz de impacto (4 áreas x 5 valores)
         for clave in VARIABLES:
             self.assertIn(f'name="r_{clave}"'.encode(), r.data)
 
@@ -38,10 +38,26 @@ class PruebasWeb(unittest.TestCase):
         self.assertIn('href="/evaluar"', html)
         self.assertIn("/evaluar?demo=1", html)
         self.assertIn("/static/css/style.css", html)
+        for ref in ("Sihwi, S. W.", "Vitkus, D.", "Koeze, R.", "Fähnrich, N.", "Pawar, S.", "Chidukwani, A."):
+            self.assertIn(ref, html)                       # fuentes consultables
+        self.assertIn("Conoce qué puedes mejorar", html)
+        self.assertIn("Antes de comenzar", html)
+        self.assertIn("No sustituye una auditoría.", html)
         for autor in ("Sihwi et al. (2016)", "Vitkus et al. (2019)", "Koeze (2017)",
                       "Fähnrich y Roßnagel (2022)", "Pawar y Palivela (2022)", "Chidukwani et al. (2026)"):
-            self.assertIn(autor, html)
-        self.assertIn("Citas literales", html)
+            self.assertIn(autor, html)                     # tarjetas de antecedentes
+        self.assertIn("Traducción:", html)                 # cada cita indica su traducción
+        self.assertIn("48 preguntas", html)
+        self.assertIn("4 áreas de evaluación", html)
+
+    def test_pie_de_pagina_en_todas_las_pantallas(self):
+        from datetime import date
+        paginas = [self.cliente.get(u).data.decode() for u in ("/", "/evaluar", "/admin")]
+        paginas.append(self.cliente.post("/resultado", data=formulario()).data.decode())
+        for html in paginas:
+            self.assertIn('<footer class="pie">', html)
+            self.assertIn("Desarrollado por Alexis Abel Quintana Luis y Juan Diego Montenegro Urrutia.", html)
+            self.assertIn(f"© {date.today().year} Asesor de ciberseguridad para pequeñas empresas. Todos los derechos reservados.", html)
 
     def test_hoja_de_estilos_se_sirve(self):
         r = self.cliente.get("/static/css/style.css")

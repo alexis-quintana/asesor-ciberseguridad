@@ -1,29 +1,48 @@
 {% extends "base.html" %}
+{% from "_ui.html" import icono %}
 {% block titulo %}Administración · Asesor de ciberseguridad{% endblock %}
+{% block clase_cab %} compacta{% endblock %}
 {% block contenido %}
-<h1>Mantenimiento de reglas</h1>
-{% if error %}<div class="error" role="alert">{{ error }}</div>{% endif %}
-{% if crear %}
-<div class="nota"><b>Primer uso.</b> Cree la clave del administrador. Solo quien la conozca podrá desactivar, editar o agregar reglas. Se guarda cifrada (no en texto plano) en la carpeta <span class="mono">datos/</span>.</div>
-{% if local %}
-<form method="post" action="/admin/crear-clave" class="tarjeta">
-  <input type="hidden" name="csrf" value="{{ csrf }}">
-  <p><label for="clave"><b>Nueva clave</b> (mínimo {{ minimo }} caracteres)</label><br>
-  <input type="password" id="clave" name="clave" autocomplete="new-password" minlength="{{ minimo }}" required></p>
-  <p><label for="confirmacion"><b>Repita la clave</b></label><br>
-  <input type="password" id="confirmacion" name="confirmacion" autocomplete="new-password" minlength="{{ minimo }}" required></p>
-  <button type="submit">Crear clave y entrar</button>
-</form>
-{% else %}
-<div class="error">La clave solo puede crearse desde el equipo donde corre el asesor.</div>
-{% endif %}
-{% else %}
-<form method="post" action="/admin/entrar" class="tarjeta">
-  <input type="hidden" name="csrf" value="{{ csrf }}">
-  <p><label for="clave"><b>Clave del administrador</b></label><br>
-  <input type="password" id="clave" name="clave" autocomplete="current-password" required></p>
-  <button type="submit">Entrar</button>
-</form>
-{% endif %}
-<p><a href="/">← Volver al inicio</a></p>
+<div class="contenedor">
+<div class="acceso tarjeta">
+  <div class="centrado">
+    <div class="icono-redondo">{{ icono("llave") }}</div>
+    <h1>Acceso de administrador</h1>
+    <p class="suave">{% if crear %}Cree la clave del administrador para continuar.{% else %}Introduce tu clave para gestionar las reglas del sistema{% endif %}</p>
+  </div>
+  {% if error %}<div class="error" role="alert">{{ icono("peligro") }}<div>{{ error }}</div></div>{% endif %}
+  {% if crear %}
+  <div class="nota">{{ icono("alerta") }}<div><b>Primer uso.</b> Solo quien conozca esta clave podrá desactivar, editar o agregar reglas. Se guarda cifrada (no en texto plano) en la carpeta <span class="mono">datos/</span>.</div></div>
+  {% if local %}
+  <form method="post" action="/admin/crear-clave">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <div class="campo"><label for="clave">Nueva clave <span class="ayuda-campo">(mínimo {{ minimo }} caracteres)</span></label>
+      <input type="password" id="clave" name="clave" autocomplete="new-password" minlength="{{ minimo }}" required></div>
+    <div class="campo"><label for="confirmacion">Repita la clave</label>
+      <input type="password" id="confirmacion" name="confirmacion" autocomplete="new-password" minlength="{{ minimo }}" required></div>
+    <button type="submit" class="btn">Crear clave y entrar</button>
+  </form>
+  {% else %}
+  <div class="error">{{ icono("peligro") }}<div>La clave solo puede crearse desde el equipo donde corre el asesor.</div></div>
+  {% endif %}
+  {% else %}
+  <form method="post" action="/admin/entrar" id="form-acceso" novalidate>
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <div class="campo"><label for="clave">Clave de acceso</label>
+      <div class="entrada-clave">
+        <input type="password" id="clave" name="clave" autocomplete="current-password" autofocus
+               aria-describedby="error-clave"{% if error_clave %} aria-invalid="true"{% endif %}>
+        <button type="button" class="ver-clave" id="ver-clave" aria-label="Mostrar clave" aria-controls="clave" hidden>
+          <span class="ojo-ver">{{ icono("ojo") }}</span><span class="ojo-ocultar" hidden>{{ icono("ojo-tachado") }}</span>
+        </button>
+      </div>
+      <p class="error-campo" id="error-clave" role="alert">{% if error_clave %}{{ error_clave }}{% endif %}</p>
+    </div>
+    <button type="submit" class="btn">Acceder</button>
+  </form>
+  <script src="{{ url_for('static', filename='js/admin_login.js') }}"></script>
+  {% endif %}
+  <p class="centrado" style="margin:var(--e5) 0 0"><a href="/">← Volver al inicio</a></p>
+</div>
+</div>
 {% endblock %}

@@ -1,139 +1,111 @@
 {% extends "base.html" %}
+{% from "_ui.html" import icono %}
 {% block titulo %}Evaluación · Asesor de ciberseguridad{% endblock %}
-{% block flujo %}{% with actual=2 %}{% include "_flujo.html" %}{% endwith %}{% endblock %}
+{% block clase_cab %} compacta{% endblock %}
+{% block centro_cab %}{% with actual=2 %}{% include "_flujo.html" %}{% endwith %}{% endblock %}
 {% block contenido %}
-<h1>Evaluación de ciberseguridad</h1>
-<p class="suave">Responda las 48 preguntas sobre las prácticas de su empresa, área por área. Las respuestas no se guardan: se usan solo para calcular el resultado.</p>
-<p class="suave">¿Solo quiere ver cómo funciona? <a href="/evaluar?demo=1">Cargar el caso de demostración</a>.</p>
-{% if errores %}<div class="error" role="alert">{% for e in errores %}<div>{{ e }}</div>{% endfor %}</div>{% endif %}
-
-<details class="tarjeta" open>
-  <summary>¿Cuándo marcar cada opción?</summary>
-  <div class="guia">
-    {% for nombre, texto in guia %}<div><b>{{ nombre }}</b><br><span class="suave">{{ texto }}</span></div>{% endfor %}
-  </div>
-  <p class="suave">Cada pregunta tiene un enlace «¿Qué significa?» con un ejemplo y, si no conoce la respuesta, cómo comprobarla.</p>
-</details>
-
-<form method="post" action="/resultado" id="cuestionario">
-  <div class="tarjeta">
-    <label for="empresa"><b>Nombre de la empresa</b> <span class="suave">(opcional, solo aparece en el reporte)</span></label><br>
-    <input type="text" id="empresa" name="empresa" maxlength="80" value="{{ empresa }}">
-  </div>
-
-  <div class="progreso" id="progreso" hidden>
-    <div class="suave" id="progreso-texto"></div>
-    <div class="barra"><i id="progreso-barra"></i></div>
-  </div>
-
-  {% for area, items in grupos %}
-  <section class="tarjeta paso" data-paso="{{ loop.index0 }}">
-    <h2>{{ loop.index }}. {{ area|capitalize }}</h2>
-    {% for numero, clave, texto, aclaracion in items %}
-    <fieldset class="pregunta" data-clave="{{ clave }}" style="border:0;padding:10px 0;margin:0;min-width:0">
-      <legend style="padding:0;margin-bottom:6px">{{ numero }}. {{ texto }}</legend>
-      <div class="opciones">
-        {% for valor, nombre in opciones %}
-        <label><input type="radio" name="r_{{ clave }}" value="{{ valor }}" {{ 'checked' if respuestas.get(clave) == valor }}>{{ nombre }}</label>
-        {% endfor %}
-      </div>
-      {% if aclaracion.ejemplo %}
-      <details class="ayuda"><summary>¿Qué significa?</summary>
-        <p>{{ aclaracion.ejemplo }}</p>
-        <p><b>Si no lo sabe:</b> {{ aclaracion.verificar }}</p>
-      </details>
-      {% endif %}
-    </fieldset>
-    {% endfor %}
-  </section>
-  {% endfor %}
-
-  <section class="paso" data-paso="{{ grupos|length }}">
-    <details class="tarjeta" {{ 'open' if impactos }}>
-      <summary>Extensión opcional: impacto para el negocio</summary>
-      <p class="suave">Si valora de 1 (mínimo) a 5 (crítico) qué tan grave sería un incidente en cada área, el resultado añade bandas de riesgo y una zona de la matriz probabilidad–impacto. Déjelo vacío para el flujo principal.</p>
-      {% for area in areas %}
-      <p><label for="i_{{ area }}">{{ preguntas_impacto[area] }}</label><br>
-      <select id="i_{{ area }}" name="i_{{ area }}"><option value="">(no usar)</option>
-        {% for n in range(1, 6) %}<option value="{{ n }}" {{ 'selected' if impactos.get(area)|string == n|string }}>{{ n }}</option>{% endfor %}
-      </select></p>
+{% set iconos = ["llave", "disco", "correo", "red"] %}
+<div class="contenedor eval">
+  <aside class="lateral" id="lateral" aria-label="Áreas de la evaluación">
+    <h2>Áreas</h2>
+    <ol>
+      {% for area, items in grupos %}
+      <li><button type="button" class="item-area" data-ir="{{ loop.index0 }}">
+        <span class="n">{{ loop.index }}</span>
+        <span class="t">{{ area|capitalize }}<small data-cuenta="{{ loop.index0 }}" data-total="{{ items|length }}">0 de {{ items|length }}</small></span>
+      </button></li>
       {% endfor %}
-    </details>
-  </section>
+      <li><button type="button" class="item-area" data-ir="{{ grupos|length }}">
+        <span class="n">{{ icono("medidor") }}</span>
+        <span class="t">Impacto<small>Opcional</small></span>
+      </button></li>
+    </ol>
+  </aside>
 
-  <div class="acciones" id="navegacion">
-    <button type="button" class="btn sec" id="anterior" hidden>← Anterior</button>
-    <button type="button" id="siguiente" hidden>Siguiente →</button>
-    <button type="submit" id="enviar">Ver resultado</button>
+  <div class="principal">
+    <div class="encabezado-eval">
+      <p class="eyebrow" id="paso-etiqueta">Evaluación</p>
+      <h1>Evaluación de ciberseguridad</h1>
+      <p class="lead">Responda las 48 preguntas sobre las prácticas de su empresa, área por área. Las respuestas no se guardan: se usan solo para calcular el resultado.</p>
+      <div class="progreso-caja tarjeta compacta" id="progreso" hidden>
+        <div class="progreso-fila" aria-live="polite"><span id="progreso-texto"></span></div>
+        <div class="barra" role="progressbar" aria-label="Preguntas respondidas" aria-valuemin="0" aria-valuemax="48" aria-valuenow="0" id="progreso-aria"><i id="progreso-barra"></i></div>
+      </div>
+    </div>
+
+    {% if errores %}<div class="error" role="alert">{{ icono("peligro") }}<div>{% for e in errores %}<div>{{ e }}</div>{% endfor %}</div></div>{% endif %}
+
+    <form method="post" action="/resultado" id="cuestionario">
+      <div class="tarjeta datos-empresa">
+        <div class="campo" style="margin:0">
+          <label for="empresa">Nombre de la empresa <span class="ayuda-campo">(opcional, solo aparece en el reporte)</span></label>
+          <input type="text" id="empresa" name="empresa" maxlength="80" value="{{ empresa }}" autocomplete="organization">
+        </div>
+        <details class="ayuda" open>
+          <summary>¿Cuándo marcar cada opción?</summary>
+          <div>
+            <div class="guia">{% for nombre, texto in guia %}<div><b>{{ nombre }}</b><span class="suave">{{ texto }}</span></div>{% endfor %}</div>
+            <p class="suave" style="margin:12px 0 0">Cada pregunta tiene un enlace «¿Qué significa?» con un ejemplo y, si no conoce la respuesta, cómo comprobarla. ¿Solo quiere ver cómo funciona? <a href="/evaluar?demo=1">Cargar el caso de demostración</a>.</p>
+          </div>
+        </details>
+      </div>
+
+      {% for area, items in grupos %}
+      <section class="paso" data-paso="{{ loop.index0 }}" aria-labelledby="area-{{ loop.index0 }}">
+        <h2 id="area-{{ loop.index0 }}"><span class="icono-redondo">{{ icono(iconos[loop.index0]) }}</span>{{ loop.index }}. {{ area|capitalize }}</h2>
+        {% for numero, clave, texto, aclaracion in items %}
+        <fieldset class="pregunta" data-clave="{{ clave }}">
+          <legend><span class="numero">{{ numero }}</span><span>{{ texto }}</span></legend>
+          <div class="opciones">
+            {% for valor, nombre in opciones %}
+            <label class="opcion"><input type="radio" name="r_{{ clave }}" value="{{ valor }}" {{ 'checked' if respuestas.get(clave) == valor }}><span>{{ nombre }}</span></label>
+            {% endfor %}
+          </div>
+          {% if aclaracion.ejemplo %}
+          <details class="ayuda"><summary>¿Qué significa?</summary>
+            <div><p style="margin:0 0 8px">{{ aclaracion.ejemplo }}</p>
+            <p style="margin:0"><b>Si no lo sabe:</b> {{ aclaracion.verificar }}</p></div>
+          </details>
+          {% endif %}
+        </fieldset>
+        {% endfor %}
+      </section>
+      {% endfor %}
+
+      <section class="paso" data-paso="{{ grupos|length }}" aria-labelledby="area-impacto">
+        <h2 id="area-impacto"><span class="icono-redondo">{{ icono("medidor") }}</span>Impacto para el negocio <span class="chip estado">Opcional</span></h2>
+        <div class="tarjeta">
+          <p class="suave">Si valora de 1 (mínimo) a 5 (crítico) qué tan grave sería un incidente en cada área, el resultado añade bandas de riesgo y una zona de la matriz probabilidad–impacto. Déjelo vacío para el flujo principal.</p>
+          <div class="matriz" role="group" aria-label="Impacto por área, de 1 (mínimo) a 5 (crítico)">
+            <div class="matriz-cab" aria-hidden="true">
+              <span></span>
+              <span><b>1</b>Mínimo</span><span><b>2</b></span><span><b>3</b></span><span><b>4</b></span><span><b>5</b>Crítico</span>
+            </div>
+            {% for area in areas %}
+            <div class="matriz-fila" role="radiogroup" aria-labelledby="imp-{{ area }}">
+              <div class="matriz-texto"><span id="imp-{{ area }}">{{ preguntas_impacto[area]|replace(" (1 = mínimo, 5 = crítico)", "") }}</span>
+                <button type="button" class="limpiar" data-limpiar="{{ area }}" hidden>Limpiar</button></div>
+              {% for n in range(1, 6) %}
+              <label class="celda"><input type="radio" name="i_{{ area }}" value="{{ n }}" {{ 'checked' if impactos.get(area)|string == n|string }}><span class="punto"></span><span class="num-celda">{{ n }}</span><span class="oculto-visual">Impacto {{ n }} de 5</span></label>
+              {% endfor %}
+            </div>
+            {% endfor %}
+          </div>
+          <p class="suave" style="margin:12px 0 0;font-size:.88rem">Sin seleccionar, no se usa la extensión. Debe valorar las cuatro áreas o ninguna.</p>
+        </div>
+      </section>
+
+      <div class="barra-acciones" id="navegacion">
+        <button type="button" class="btn sec" id="anterior" hidden>{{ icono("atras") }} Anterior</button>
+        <div class="derecha">
+          <button type="button" class="btn" id="siguiente" hidden>Continuar {{ icono("flecha") }}</button>
+          <button type="submit" class="btn" id="enviar">Ver resultado</button>
+        </div>
+      </div>
+      <div class="error aviso-paso" id="aviso-paso" role="alert" hidden></div>
+    </form>
   </div>
-  <div class="error" id="aviso-paso" role="alert" hidden></div>
-</form>
+</div>
 {% endblock %}
 
-{% block scripts %}
-<script>
-/* Mejora progresiva: sin JavaScript se ven las cuatro áreas juntas y el servidor valida las respuestas. */
-(function () {
-  var pasos = Array.prototype.slice.call(document.querySelectorAll('.paso'));
-  var preguntas = document.querySelectorAll('fieldset.pregunta');
-  var total = preguntas.length, actual = 0;
-  var porArea = pasos.length - 1;               /* el último paso es la extensión opcional */
-  var ant = document.getElementById('anterior'), sig = document.getElementById('siguiente');
-  var enviar = document.getElementById('enviar'), aviso = document.getElementById('aviso-paso');
-  var barra = document.getElementById('progreso-barra'), texto = document.getElementById('progreso-texto');
-  document.getElementById('progreso').hidden = false;
-
-  function respondidas() {
-    var n = 0;
-    preguntas.forEach(function (p) { if (p.querySelector('input:checked')) n++; });
-    return n;
-  }
-  function pendientes(paso) {
-    return Array.prototype.filter.call(pasos[paso].querySelectorAll('fieldset.pregunta'),
-      function (p) { return !p.querySelector('input:checked'); });
-  }
-  function actualizar() {
-    var n = respondidas();
-    barra.style.width = (100 * n / total) + '%';
-    texto.textContent = (actual < porArea ? 'Área ' + (actual + 1) + ' de ' + porArea + ' · ' : 'Último paso · ') +
-      n + ' de ' + total + ' preguntas respondidas';
-    pasos.forEach(function (p, i) { p.classList.toggle('paso-oculto', i !== actual); });
-    ant.hidden = actual === 0;
-    sig.hidden = actual === pasos.length - 1;
-    enviar.hidden = actual !== pasos.length - 1;
-  }
-  function ir(destino) {
-    actual = destino; aviso.hidden = true; actualizar();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-  sig.addEventListener('click', function () {
-    var faltan = actual < porArea ? pendientes(actual) : [];
-    preguntas.forEach(function (p) { p.classList.remove('pendiente'); });
-    if (faltan.length) {
-      faltan.forEach(function (p) { p.classList.add('pendiente'); });
-      aviso.textContent = 'Falta responder ' + faltan.length + ' pregunta(s) de esta área. Si no conoce la respuesta, marque «No sé».';
-      aviso.hidden = false; faltan[0].scrollIntoView({ block: 'center', behavior: 'smooth' });
-      return;
-    }
-    ir(actual + 1);
-  });
-  ant.addEventListener('click', function () { ir(actual - 1); });
-  document.getElementById('cuestionario').addEventListener('change', actualizar);
-  document.getElementById('cuestionario').addEventListener('submit', function (e) {
-    for (var i = 0; i < porArea; i++) {
-      var faltan = pendientes(i);
-      if (faltan.length) {
-        e.preventDefault(); actual = i; actualizar();
-        faltan.forEach(function (p) { p.classList.add('pendiente'); });
-        aviso.textContent = 'Falta responder ' + faltan.length + ' pregunta(s) en el área ' + (i + 1) + '.';
-        aviso.hidden = false; faltan[0].scrollIntoView({ block: 'center' });
-        return;
-      }
-    }
-  });
-  /* Con respuestas precargadas (demo o error del servidor) se empieza en el último paso. */
-  actual = respondidas() === total ? pasos.length - 1 : 0;
-  actualizar();
-})();
-</script>
-{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/evaluacion.js') }}"></script>{% endblock %}

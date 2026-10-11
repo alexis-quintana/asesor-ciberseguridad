@@ -65,13 +65,10 @@ AREAS = tuple(dict.fromkeys(v["area"] for v in VARIABLES.values()))
 # Redacción del equipo; concepto de impacto: Sihwi (2016) y Koeze (2017).
 PREGUNTAS_IMPACTO = {
     "cuentas": ("Si un tercero accediera a las cuentas de la empresa, ¿qué tan grave "
-                "sería para el negocio? (1 = mínimo, 5 = crítico)"),
-    "respaldos": ("Si se perdieran los datos del negocio, ¿qué tan grave sería? "
-                  "(1 = mínimo, 5 = crítico)"),
-    "correo": ("Si el correo corporativo fuera comprometido, ¿qué tan grave sería? "
-               "(1 = mínimo, 5 = crítico)"),
-    "redes": ("Si la red fuera intrusada o dejara de funcionar, ¿qué tan grave sería? "
-              "(1 = mínimo, 5 = crítico)"),
+                "sería para el negocio?"),
+    "respaldos": ("Si se perdieran los datos del negocio, ¿qué tan grave sería?"),
+    "correo": ("Si el correo corporativo fuera comprometido, ¿qué tan grave sería?"),
+    "redes": ("Si la red fuera intrusada o dejara de funcionar, ¿qué tan grave sería?"),
 }
 
 

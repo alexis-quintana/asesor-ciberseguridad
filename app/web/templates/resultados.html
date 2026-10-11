@@ -1,88 +1,161 @@
 {% extends "base.html" %}
+{% from "_ui.html" import icono, nivel %}
 {% block titulo %}Resultado · Asesor de ciberseguridad{% endblock %}
-{% block flujo %}{% with actual=3 %}{% include "_flujo.html" %}{% endwith %}{% endblock %}
+{% block clase_cab %} compacta{% endblock %}
+{% block centro_cab %}{% with actual=3 %}{% include "_flujo.html" %}{% endwith %}{% endblock %}
 {% block contenido %}
-<h1>Resultado{% if empresa %} · {{ empresa }}{% endif %}</h1>
-<div class="tarjeta">
-  <div class="suave">Riesgo global</div>
-  <div class="global nivel-{{ r.riesgo_global }}">{{ nombres[r.riesgo_global] }}</div>
-  <div class="suave">{{ detalle.global.motivo }} <span class="chip">{{ detalle.global.regla }}</span></div>
-  <div class="areas" style="margin-top:10px">
-    {% for a in areas %}
-    <div><span class="suave">{{ a|capitalize }}</span><b class="nivel-{{ h['nivel_p_' ~ a] }}">{{ nombres[h['nivel_p_' ~ a]] }}</b><span class="suave">probabilidad {{ '%.1f'|format(h['p_' ~ a]) }}</span></div>
-    {% endfor %}
-  </div>
+{% set iconos_area = {"cuentas": "llave", "respaldos": "disco", "correo": "correo", "redes": "red"} %}
+{% set recos = detalle.recomendaciones %}
+{% set n_alta = recos|selectattr("prioridad", "equalto", "alta")|list|length %}
+{% set n_media = recos|selectattr("prioridad", "equalto", "media")|list|length %}
+{% set n_baja = recos|selectattr("prioridad", "equalto", "baja")|list|length %}
+{% set n_verif = verificaciones|map(attribute="preguntas")|map("length")|sum %}
+<div class="contenedor pagina">
+
+<div class="cab-resultado">
+  <p class="eyebrow">Resultados{% if empresa %} · {{ empresa }}{% endif %}</p>
+  <h1>Tu diagnóstico de ciberseguridad</h1>
+  <p>Así están hoy las prácticas que declaraste, y qué conviene mejorar primero.</p>
 </div>
 
-<div class="tarjeta">
-  <h2>Recomendaciones priorizadas ({{ lista|length }})</h2>
+<section class="fila-1" aria-label="Resumen">
+  <div class="global g-{{ r.riesgo_global }}">
+    <span class="etq">Riesgo global</span>
+    <div class="valor nivel-{{ r.riesgo_global }}">{{ icono({"bajo": "ok", "medio": "alerta", "alto": "peligro"}[r.riesgo_global]) }}{{ nombres[r.riesgo_global] }}</div>
+    <p>{{ detalle.global.motivo }} <span class="chip">{{ detalle.global.regla }}</span></p>
+  </div>
+  <div class="tarjeta dato-chico"><span class="cifra">{{ lista|length }}</span><span class="rotulo">{{ icono("lista") }}Recomendaciones</span></div>
+  <div class="tarjeta dato-chico"><span class="cifra nivel-alto">{{ n_alta }}</span><span class="rotulo">{{ icono("peligro") }}Prioridad alta</span></div>
+  <div class="tarjeta dato-chico"><span class="cifra nivel-medio">{{ n_media }}</span><span class="rotulo">{{ icono("alerta") }}Prioridad media</span></div>
+  <div class="tarjeta dato-chico"><span class="cifra">{{ n_verif }}</span><span class="rotulo">{{ icono("ayuda") }}Por verificar</span></div>
+</section>
+
+<section class="fila-areas" aria-label="Riesgo por área">
+  {% for a in detalle.areas %}
+  <article class="tarjeta area-res">
+    <header><span class="icono-redondo">{{ icono(iconos_area[a.area]) }}</span><h3>{{ a.area }}</h3></header>
+    <div>{{ nivel(a.nivel, nombres) }} <span class="chip">{{ a.regla }}</span></div>
+    <div class="medidor" role="img" aria-label="Probabilidad {{ '%.1f'|format(a.p) }} de 100"><i class="m-{{ a.nivel }}" style="width: {{ [a.p, 100]|min }}%"></i></div>
+    <div class="prob">Probabilidad {{ '%.1f'|format(a.p) }} de 100</div>
+    <div class="conteo">
+      <span><b>{{ a.conteo['si'] }}</b>Sí</span><span><b>{{ a.conteo['parcialmente'] }}</b>Parc.</span><span><b>{{ a.conteo['no'] }}</b>No</span><span><b>{{ a.conteo['no_se'] }}</b>No sé</span>
+    </div>
+  </article>
+  {% endfor %}
+</section>
+
+<section class="bloque" aria-labelledby="t-reco" id="recomendaciones">
+  <h2 id="t-reco">Recomendaciones priorizadas ({{ lista|length }})</h2>
   {% if lista %}
-  <table>
-    <tr><th>N.º</th><th>Prioridad</th><th>Recomendación</th><th>Área</th><th>Práctica evaluada</th></tr>
-    {% for i in detalle.recomendaciones %}
-    <tr><td>{{ i.orden }}</td><td class="insignia nivel-{{ {'alta':'alto','media':'medio','baja':'bajo'}[i.prioridad] }}">{{ i.prioridad|capitalize }}</td>
-      <td>{{ i.recomendacion }}
-        <details class="ayuda"><summary>¿Por qué esta recomendación y esta prioridad?</summary>
-          {% if i.respuesta %}<p>Usted respondió <b>«{{ i.respuesta }}»</b> a esta pregunta.</p>{% endif %}
+  <div class="filtros" id="filtros" hidden>
+    <div class="pildoras" role="group" aria-label="Filtrar por prioridad">
+      <button type="button" class="pildora" data-prioridad="" aria-pressed="true">Todas</button>
+      <button type="button" class="pildora" data-prioridad="alta" aria-pressed="false">Alta ({{ n_alta }})</button>
+      <button type="button" class="pildora" data-prioridad="media" aria-pressed="false">Media ({{ n_media }})</button>
+      <button type="button" class="pildora" data-prioridad="baja" aria-pressed="false">Baja ({{ n_baja }})</button>
+    </div>
+    <label class="oculto-visual" for="filtro-area">Filtrar por área</label>
+    <select id="filtro-area"><option value="">Todas las áreas</option>{% for a in areas %}<option value="{{ a }}">{{ a|capitalize }}</option>{% endfor %}</select>
+    <span class="cuenta" id="filtro-cuenta" aria-live="polite"></span>
+  </div>
+  <ol class="reco-lista" id="reco-lista">
+    {% for i in recos %}
+    <li class="reco" data-prioridad="{{ i.prioridad }}" data-area="{{ i.area }}">
+      <span class="orden" aria-label="Número {{ i.orden }}">{{ i.orden }}</span>
+      <div>
+        <div class="texto">{{ i.recomendacion }}</div>
+        <div class="meta-reco">{{ i.area|capitalize }} · {{ i.pregunta }}</div>
+      </div>
+      <span class="insignia nivel-{{ {'alta':'alto','media':'medio','baja':'bajo'}[i.prioridad] }}">{{ icono({'alta':'peligro','media':'alerta','baja':'ok'}[i.prioridad]) }}{{ i.prioridad|capitalize }}</span>
+      <details class="ayuda"><summary>¿Por qué esta recomendación y esta prioridad?</summary>
+        <div>
+          {% if i.respuesta %}<p style="margin:0 0 8px">Usted respondió <b>«{{ i.respuesta }}»</b> a esta pregunta.</p>{% endif %}
           <ol class="cadena">{% for paso in i.cadena %}<li>{{ paso.texto }}</li>{% endfor %}</ol>
-        </details></td>
-      <td>{{ i.area|capitalize }}</td><td class="suave">{{ i.pregunta }}</td></tr>
+        </div>
+      </details>
+    </li>
     {% endfor %}
-  </table>
-  {% else %}<p>{{ sin_recomendaciones }}</p>{% endif %}
-</div>
+  </ol>
+  <div class="vacio" id="filtro-vacio" hidden>Ninguna recomendación coincide con el filtro.</div>
+  {% else %}<div class="vacio">{{ sin_recomendaciones }}</div>{% endif %}
+</section>
 
 {% if verificaciones %}
-<div class="tarjeta nota"><h2>Respuestas por verificar</h2>
-<p class="suave">Estas respuestas «No sé» se contaron como «No» solo para calcular el riesgo; no significa que la práctica falte. Verifíquelas así:</p>
-{% for g in verificaciones %}<p><b>{{ g.area|capitalize }}</b></p><ul>
-{% for p in g.preguntas %}<li>{{ p.pregunta }}<br><span class="suave">{{ p.verificar }}</span></li>{% endfor %}</ul>{% endfor %}
-</div>
+<section class="bloque aviso-bloque" aria-labelledby="t-verif">
+  <h2 id="t-verif">{{ icono("alerta") }}Respuestas por verificar</h2>
+  <p class="suave">Estas respuestas «No sé» se contaron como «No» solo para calcular el riesgo; no significa que la práctica falte. Verifíquelas así:</p>
+  {% for g in verificaciones %}<div class="area-t">{{ g.area }}</div><ul>
+  {% for p in g.preguntas %}<li>{{ p.pregunta }}<br><span class="suave">{{ p.verificar }}</span></li>{% endfor %}</ul>{% endfor %}
+</section>
 {% endif %}
 
-<div class="tarjeta">
-  <h2>Cómo se calculó cada área</h2>
-  <p class="suave">Cada respuesta vale un puntaje (Sí = {{ detalle.puntajes['Sí'] }}, Parcialmente = {{ detalle.puntajes['Parcialmente'] }}, No y No sé = {{ detalle.puntajes['No'] }}). La probabilidad P del área es el promedio de sus 12 puntajes: <b>bajo</b> si P &lt; {{ detalle.umbrales.medio }}, <b>medio</b> si P &lt; {{ detalle.umbrales.alto }} y <b>alto</b> si P ≥ {{ detalle.umbrales.alto }}.</p>
-  <table>
-    <tr><th>Área</th><th>Sí</th><th>Parc.</th><th>No</th><th>No sé</th><th>P</th><th>Nivel (regla)</th></tr>
-    {% for a in detalle.areas %}
-    <tr><td>{{ a.area|capitalize }}</td><td>{{ a.conteo['si'] }}</td><td>{{ a.conteo['parcialmente'] }}</td><td>{{ a.conteo['no'] }}</td><td>{{ a.conteo['no_se'] }}</td>
-      <td>{{ '%.1f'|format(a.p) }}</td><td class="nivel-{{ a.nivel }}">{{ nombres[a.nivel] }} <span class="chip">{{ a.regla }}</span></td></tr>
-    {% endfor %}
-  </table>
-  <p class="suave">Riesgo global: {{ detalle.global.areas_alto }} área(s) con riesgo alto y {{ detalle.global.areas_medio }} con riesgo medio → <span class="chip">{{ detalle.global.regla }}</span> <span class="mono">{{ detalle.global.formal }}</span></p>
-</div>
+<section class="bloque" aria-labelledby="t-detalle">
+  <h2 id="t-detalle">Cómo se llegó a este resultado</h2>
 
-{% if riesgo %}
-<div class="tarjeta"><h2>Extensión: impacto, bandas y zona</h2>
-<table><tr><th>Área</th><th>Impacto (0–1)</th><th>Riesgo (0–1)</th><th>Banda</th></tr>
-{% for a in areas %}<tr><td>{{ a|capitalize }}</td><td>{{ '%.1f'|format(riesgo.impacto[a]) }}</td><td>{{ '%.3f'|format(riesgo.riesgo_area[a]) }}</td><td>{{ riesgo.banda_area[a] }}</td></tr>{% endfor %}
-</table>
-<p>Zona global: <b>{{ riesgo.zona }}</b> · riesgo numérico global {{ '%.3f'|format(riesgo.riesgo_global) }} ({{ riesgo.banda_global }}).</p></div>
-{% endif %}
+  <details class="desplegable">
+    <summary>Cómo se calculó cada área</summary>
+    <div class="cuerpo">
+      <p class="suave">Cada respuesta vale un puntaje (Sí = {{ detalle.puntajes['Sí'] }}, Parcialmente = {{ detalle.puntajes['Parcialmente'] }}, No y No sé = {{ detalle.puntajes['No'] }}). La probabilidad P del área es el promedio de sus 12 puntajes: <b>bajo</b> si P &lt; {{ detalle.umbrales.medio }}, <b>medio</b> si P &lt; {{ detalle.umbrales.alto }} y <b>alto</b> si P ≥ {{ detalle.umbrales.alto }}.</p>
+      <div class="tabla-scroll"><table>
+        <tr><th>Área</th><th>Sí</th><th>Parc.</th><th>No</th><th>No sé</th><th>P</th><th>Nivel (regla)</th></tr>
+        {% for a in detalle.areas %}
+        <tr><td>{{ a.area|capitalize }}</td><td>{{ a.conteo['si'] }}</td><td>{{ a.conteo['parcialmente'] }}</td><td>{{ a.conteo['no'] }}</td><td>{{ a.conteo['no_se'] }}</td>
+          <td>{{ '%.1f'|format(a.p) }}</td><td>{{ nivel(a.nivel, nombres) }} <span class="chip">{{ a.regla }}</span></td></tr>
+        {% endfor %}
+      </table></div>
+      <p class="suave" style="margin-top:12px">Riesgo global: {{ detalle.global.areas_alto }} área(s) con riesgo alto y {{ detalle.global.areas_medio }} con riesgo medio → <span class="chip">{{ detalle.global.regla }}</span> <span class="mono">{{ detalle.global.formal }}</span></p>
+    </div>
+  </details>
 
-<div class="tarjeta"><details><summary>Cómo trabajó el motor de inferencia</summary>
-<p class="suave">El motor procesa las reglas por etapas, en orden. En cada etapa recorre sus reglas por número, aplica las que se cumplen y repite hasta que no se dispara ninguna nueva (cada regla se dispara una sola vez). Lo que una regla produce queda en la memoria de trabajo y lo usan las reglas de las etapas siguientes.</p>
-<table><tr><th>Etapa</th><th>Reglas</th><th>Condiciones evaluadas</th><th>Reglas disparadas</th><th>Pasadas</th></tr>
-{% for etapa, e in detalle.estadisticas.items() %}<tr><td>{{ etapa }}</td><td>{{ e.reglas }}</td><td>{{ e.evaluaciones }}</td><td>{{ e.disparadas }}</td><td>{{ e.pasadas }}</td></tr>{% endfor %}
-</table>
-{% if detalle.no_aplicadas %}
-<p class="suave"><b>Reglas que se evaluaron y no se aplicaron</b> (no producen nada; el motor sigue con la siguiente):</p>
-<ul>{% for n in detalle.no_aplicadas %}<li><span class="chip">{{ n.id }}</span> {{ n.motivo }}{{ n.instancias }}.</li>{% endfor %}</ul>
-{% endif %}
-</details></div>
+  {% if riesgo %}
+  <details class="desplegable" open>
+    <summary>Extensión: impacto, bandas y zona</summary>
+    <div class="cuerpo">
+      <div class="tabla-scroll"><table><tr><th>Área</th><th>Impacto (0–1)</th><th>Riesgo (0–1)</th><th>Banda</th></tr>
+      {% for a in areas %}<tr><td>{{ a|capitalize }}</td><td>{{ '%.1f'|format(riesgo.impacto[a]) }}</td><td>{{ '%.3f'|format(riesgo.riesgo_area[a]) }}</td><td>{{ riesgo.banda_area[a] }}</td></tr>{% endfor %}
+      </table></div>
+      <p style="margin:12px 0 0">Zona global: <b>{{ riesgo.zona }}</b> · riesgo numérico global {{ '%.3f'|format(riesgo.riesgo_global) }} ({{ riesgo.banda_global }}).</p>
+    </div>
+  </details>
+  {% endif %}
 
-<div class="tarjeta"><details><summary>Reglas aplicadas, una por una (detalle técnico)</summary>
-<p class="suave">Cada regla muestra sus condiciones (SI), su conclusión (ENTONCES), los valores observados y su fuente.</p>
-<pre>{{ explicacion }}</pre></details></div>
+  <details class="desplegable">
+    <summary>Cómo trabajó el motor de inferencia</summary>
+    <div class="cuerpo">
+      <p class="suave">El motor procesa las reglas por etapas, en orden. En cada etapa recorre sus reglas por número, aplica las que se cumplen y repite hasta que no se dispara ninguna nueva (cada regla se dispara una sola vez). Lo que una regla produce queda en la memoria de trabajo y lo usan las reglas de las etapas siguientes.</p>
+      <div class="tabla-scroll"><table><tr><th>Etapa</th><th>Reglas</th><th>Condiciones evaluadas</th><th>Reglas disparadas</th><th>Pasadas</th></tr>
+      {% for etapa, e in detalle.estadisticas.items() %}<tr><td>{{ etapa }}</td><td>{{ e.reglas }}</td><td>{{ e.evaluaciones }}</td><td>{{ e.disparadas }}</td><td>{{ e.pasadas }}</td></tr>{% endfor %}
+      </table></div>
+      {% if detalle.no_aplicadas %}
+      <p class="suave" style="margin-top:14px"><b>Reglas que se evaluaron y no se aplicaron</b> (no producen nada; el motor sigue con la siguiente):</p>
+      <ul>{% for n in detalle.no_aplicadas %}<li><span class="chip">{{ n.id }}</span> {{ n.motivo }}{{ n.instancias }}.</li>{% endfor %}</ul>
+      {% endif %}
+    </div>
+  </details>
 
-<div class="tarjeta"><h2>Límites de este resultado</h2><ul>{% for t in aviso %}<li>{{ t }}</li>{% endfor %}</ul></div>
+  <details class="desplegable">
+    <summary>Reglas aplicadas, una por una (detalle técnico)</summary>
+    <div class="cuerpo">
+      <p class="suave">Cada regla muestra sus condiciones (SI), su conclusión (ENTONCES), los valores observados y su fuente.</p>
+      <pre>{{ explicacion }}</pre>
+    </div>
+  </details>
 
-<form method="post" action="/reporte" target="_blank" class="acciones">
+  <details class="desplegable">
+    <summary>Límites de este resultado</summary>
+    <div class="cuerpo"><ul style="display:grid;gap:8px">{% for t in aviso %}<li>{{ t }}</li>{% endfor %}</ul></div>
+  </details>
+</section>
+
+<form method="post" action="/reporte" target="_blank" class="final">
   <input type="hidden" name="empresa" value="{{ empresa }}">
   {% for clave, valor in respuestas.items() %}<input type="hidden" name="r_{{ clave }}" value="{{ valor }}">{% endfor %}
   {% for a, v in impactos.items() %}<input type="hidden" name="i_{{ a }}" value="{{ v }}">{% endfor %}
-  <button type="submit">Ver reporte imprimible</button>
+  <button type="submit" class="btn">{{ icono("doc") }} Ver reporte imprimible</button>
   <a class="btn sec" href="/evaluar">Nueva evaluación</a>
 </form>
+
+</div>
 {% endblock %}
+
+{% block scripts %}<script src="{{ url_for('static', filename='js/resultados.js') }}"></script>{% endblock %}

@@ -1,35 +1,55 @@
 {% extends "base.html" %}
+{% from "_ui.html" import icono %}
 {% block titulo %}Regla {{ fila.id }} · Mantenimiento{% endblock %}
+{% block clase_cab %} compacta{% endblock %}
+{% block nav_extra %}<a class="enlace" href="/admin">← Volver a las reglas</a>{% endblock %}
 {% block contenido %}
 {% set r = fila.regla %}
-<h1>Regla {{ fila.id }}</h1>
-<p class="suave">{{ fila.etapa }} · área {{ fila.area }}{% if fila.es_nueva %} · regla nueva{% endif %}</p>
-{% if error %}<div class="error" role="alert">{{ error }}</div>{% endif %}
-<div class="tarjeta"><div class="mono">{{ formal(r) }}</div></div>
-<form method="post" action="/admin/regla/{{ fila.id }}" class="tarjeta">
+<div class="contenedor estrecho pagina">
+<div class="cab-admin"><div>
+  <p class="eyebrow">Editar regla</p>
+  <h1>Regla {{ fila.id }}</h1>
+  <p>{{ fila.etapa }} · área {{ fila.area }}{% if fila.es_nueva %} · regla nueva{% endif %}</p>
+</div></div>
+{% if error %}<div class="error" role="alert">{{ icono("peligro") }}<div>{{ error }}</div></div>{% endif %}
+<div class="seccion-form"><h3>Regla (SI … ENTONCES)</h3><div class="mono" style="margin-top:10px">{{ formal(r) }}</div></div>
+<form method="post" action="/admin/regla/{{ fila.id }}">
   <input type="hidden" name="csrf" value="{{ csrf }}">
-  {% if r.etapa in ('recomendacion', 'recomendacion_adicional') %}
-  <label>Texto de la recomendación<textarea name="texto" rows="2" maxlength="300" required>{{ r.entonces.texto }}</textarea></label>
-  {% endif %}
-  {% if fila.es_nueva %}
-  <label>Prioridad
-    <select name="prioridad">{% for p in prioridades %}<option value="{{ p }}" {{ 'selected' if r.entonces.prioridad == p }}>{{ p }}</option>{% endfor %}</select></label>
-  {% endif %}
-  {% if 'ambito' not in r %}
-  <label>Explicación<textarea name="explicacion" rows="2" maxlength="500" required>{{ r.explicacion }}</textarea></label>
-  {% else %}<p class="suave">Esta regla es genérica (se aplica por área): su explicación se genera automáticamente.</p>{% endif %}
-  <label>Evidencia de la fuente<textarea name="evidencia_del_articulo" rows="2" maxlength="500" required>{{ r.evidencia_del_articulo }}</textarea></label>
-  <div class="rejilla">
-    <label>Fuente
-      <select name="fuente_id">{% for id, f in fuentes.items() %}<option value="{{ id }}" {{ 'selected' if r.fuentes[0].id == id }}>{{ f.autores.split(' y ')[0] }} ({{ f.anio }})</option>{% endfor %}</select></label>
-    <label>Localización<input type="text" name="localizacion" value="{{ r.fuentes[0].localizacion }}" maxlength="200" required></label>
-    <label>Estado de validación
-      <select name="validacion_experto">{% for e in estados %}<option value="{{ e }}" {{ 'selected' if r.validacion_experto == e }}>{{ e }}</option>{% endfor %}</select></label>
-  </div>
-  <div class="acciones"><button type="submit">Guardar cambios</button><a class="btn sec" href="/admin">Cancelar</a></div>
+  <fieldset class="seccion-form">
+    <legend><span class="numero">1</span>Conclusión</legend>
+    {% if r.etapa in ('recomendacion', 'recomendacion_adicional') %}
+    <div class="campo"><label for="texto">Texto de la recomendación</label><textarea id="texto" name="texto" rows="2" maxlength="300" required>{{ r.entonces.texto }}</textarea></div>
+    {% endif %}
+    {% if fila.es_nueva %}
+    <div class="campo" style="max-width:260px"><label for="prioridad">Prioridad</label>
+      <select id="prioridad" name="prioridad">{% for p in prioridades %}<option value="{{ p }}" {{ 'selected' if r.entonces.prioridad == p }}>{{ p }}</option>{% endfor %}</select></div>
+    {% endif %}
+    {% if 'ambito' not in r %}
+    <div class="campo"><label for="explicacion">Explicación</label><textarea id="explicacion" name="explicacion" rows="2" maxlength="500" required>{{ r.explicacion }}</textarea></div>
+    {% else %}<p class="suave">Esta regla es genérica (se aplica por área): su explicación se genera automáticamente.</p>{% endif %}
+  </fieldset>
+  <fieldset class="seccion-form">
+    <legend><span class="numero">2</span>Fuente y evidencia</legend>
+    <div class="rejilla-campos">
+      <div class="campo"><label for="fuente_id">Fuente</label>
+        <select id="fuente_id" name="fuente_id">{% for id, f in fuentes.items() %}<option value="{{ id }}" {{ 'selected' if r.fuentes[0].id == id }}>{{ f.autores.split(' y ')[0] }} ({{ f.anio }})</option>{% endfor %}</select></div>
+      <div class="campo"><label for="localizacion">Localización</label><input type="text" id="localizacion" name="localizacion" value="{{ r.fuentes[0].localizacion }}" maxlength="200" required></div>
+    </div>
+    <div class="campo"><label for="evidencia_del_articulo">Evidencia de la fuente</label><textarea id="evidencia_del_articulo" name="evidencia_del_articulo" rows="2" maxlength="500" required>{{ r.evidencia_del_articulo }}</textarea></div>
+  </fieldset>
+  <fieldset class="seccion-form">
+    <legend><span class="numero">3</span>Validación</legend>
+    <div class="campo" style="max-width:320px;margin:0"><label for="validacion_experto">Estado de validación</label>
+      <select id="validacion_experto" name="validacion_experto">{% for e in estados %}<option value="{{ e }}" {{ 'selected' if r.validacion_experto == e }}>{{ e }}</option>{% endfor %}</select></div>
+  </fieldset>
+  <div class="acciones"><button type="submit" class="btn">Guardar cambios</button><a class="btn sec" href="/admin">Cancelar</a></div>
 </form>
 {% if fila.editada and not fila.es_nueva %}
-<form method="post" action="/admin/regla/{{ fila.id }}/restablecer" class="acciones"><input type="hidden" name="csrf" value="{{ csrf }}">
-  <button type="submit" class="btn sec">Restablecer a la versión original</button></form>
+<div class="zona-peligro">
+  <p style="margin:0 0 var(--e3)"><b>Restablecer</b> descarta los cambios y vuelve a la versión original de la regla.</p>
+  <form method="post" action="/admin/regla/{{ fila.id }}/restablecer"><input type="hidden" name="csrf" value="{{ csrf }}">
+    <button type="submit" class="btn peligro">Restablecer a la versión original</button></form>
+</div>
 {% endif %}
+</div>
 {% endblock %}
