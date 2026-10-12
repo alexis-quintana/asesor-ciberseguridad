@@ -1,22 +1,4 @@
-"""Verificación de la base de conocimientos (sección 4.3 del informe).
-
-Busca cuatro problemas en las reglas, además de la comprobación estructural de
-verificar_base() (identificadores, fuentes, hechos definidos):
-
-1. Redundancia: reglas con las mismas condiciones y la misma conclusión (duplicadas) o cuyas
-   condiciones contienen las de otra con la misma conclusión (subsunción).
-2. Conflicto: dos reglas que pueden cumplirse a la vez y asignan valores distintos al mismo
-   hecho. Si están en etapas distintas, la posterior sustituye al valor anterior (se informa como
-   «resuelto por etapa»); si están en la misma etapa, es un conflicto sin resolver.
-3. Circularidad: ciclos entre reglas, donde la conclusión de una alimenta, directa o
-   indirectamente, sus propias condiciones. Una regla que corrige un hecho con otro valor y se
-   dispara una sola vez se informa como autorreferencia benigna.
-4. Reglas sin salida: reglas cuya conclusión produce un hecho que ninguna otra regla usa y que
-   la interfaz tampoco muestra; y reglas inalcanzables, cuyas condiciones usan hechos que nadie
-   produce.
-
-Uso: python main.py --verificar
-"""
+# Verificación de la base de conocimientos (sección 4.3 del informe).
 
 from __future__ import annotations
 
@@ -38,11 +20,9 @@ HECHOS_DEL_MOTOR = (
 )
 # Hechos que la interfaz y el reporte leen: son salidas del sistema aunque ninguna regla los use.
 PREFIJOS_DE_SALIDA = ("riesgo_global", "prioridad_", "zona_global", "banda_", "nivel_p_", "nivel_i_")
-SALIDAS_DIRECTAS = ("recomendacion", "solicitud_verificacion", "recomendacion_adicional")
 
 
 def reglas_base():
-    """Todas las reglas de la base original, con las genéricas ya expandidas."""
     return list(REGLAS) + list(REGLAS_RIESGO) + list(REGLAS_PRIORIDAD) + list(REGLAS_CRITICIDAD)
 
 
@@ -74,7 +54,6 @@ def _firma_conclusion(r):
 
 
 def _candidatos(condiciones):
-    """Valores de prueba para decidir si un conjunto de condiciones sobre un hecho es satisfacible."""
     valores = []
     for c in condiciones:
         v = c["valor"]
@@ -86,7 +65,6 @@ def _candidatos(condiciones):
 
 
 def pueden_cumplirse_a_la_vez(a, b):
-    """True si existe un conjunto de hechos que cumple todas las condiciones de ambas reglas."""
     por_hecho = {}
     for c in a["si"] + b["si"]:
         por_hecho.setdefault(c["hecho"], []).append(c)
@@ -100,7 +78,6 @@ def pueden_cumplirse_a_la_vez(a, b):
 
 
 def redundancias(reglas):
-    """Pares (regla, otra, tipo) con la misma conclusión y condiciones iguales o contenidas."""
     por_conclusion = {}
     for r in reglas:
         por_conclusion.setdefault(_firma_conclusion(r), []).append(r)
@@ -118,7 +95,6 @@ def redundancias(reglas):
 
 
 def _lee_resultado(a, b):
-    """Si la regla b tiene una condición sobre el hecho que produce a: «encadenada» o «incompatible»."""
     h = _hecho_producido(a)
     for c in b["si"]:
         if c["hecho"] == h:
@@ -127,7 +103,6 @@ def _lee_resultado(a, b):
 
 
 def conflictos(reglas):
-    """Pares que asignan valores distintos al mismo hecho y pueden cumplirse a la vez."""
     por_hecho = {}
     for r in reglas:
         h = _hecho_producido(r)
@@ -149,7 +124,6 @@ def conflictos(reglas):
 
 
 def circularidad(reglas):
-    """Ciclos entre reglas: (ciclos de varias reglas, autorreferencias benignas, autorreferencias dudosas)."""
     productoras = {}
     for r in reglas:
         h = _hecho_producido(r)
@@ -186,7 +160,6 @@ def circularidad(reglas):
 
 
 def sin_salida(reglas):
-    """(reglas cuyo hecho producido nadie usa ni muestra, reglas con condiciones sobre hechos que nadie produce)."""
     usados = {c["hecho"] for r in reglas for c in r["si"]}
     producidos = {h for r in reglas if (h := _hecho_producido(r)) is not None}
     muertas, inalcanzables = [], []
@@ -201,7 +174,6 @@ def sin_salida(reglas):
 
 
 def verificar(reglas=None):
-    """Ejecuta las cuatro comprobaciones y devuelve un dict con los hallazgos."""
     reglas = reglas_base() if reglas is None else reglas
     resueltos, sin_resolver = conflictos(reglas)
     ciclos, benignas, dudosas = circularidad(reglas)

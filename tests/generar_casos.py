@@ -1,12 +1,4 @@
-"""Genera tests/casos/casos_prueba.csv: 50 casos con su resultado esperado (oráculo).
-
-Uso, desde la raíz del proyecto:  python -m tests.generar_casos
-Los casos mixtos usan una semilla fija, por lo que el archivo es reproducible.
-Los grupos son los de la sección 4.1 del informe:
-  G1 (12) casos construidos a partir de las fuentes y del enunciado de P5;
-  G2 (18) casos límite;
-  G3 (20) casos mixtos.
-"""
+# Genera tests/casos/casos_prueba.csv: 50 casos con su resultado esperado (oráculo).
 
 from __future__ import annotations
 
@@ -48,9 +40,7 @@ def agregar(grupo, origen, descripcion, respuestas, impactos=None):
 
 
 # ---------------------------------------------------------------- G1: fuentes y enunciado
-# Ocho pymes de Chidukwani et al. (2026). Se fijan las respuestas que el artículo describe
-# (cada «no» corresponde a una carencia citada en §4.3 y §4.4); las demás toman el valor por
-# defecto indicado, según el nivel de implementación que el artículo informa para esa pyme.
+# Ocho pymes de Chidukwani et al. (2026): cada «no» corresponde a una carencia citada en sección 4.3 y sección 4.4.
 CHID = {
     "SME1": ("parcialmente", dict(cortafuegos_verificado="no", wifi_invitados_separado="no",
              filtro_correo_verificado="no", parches_equipos="no", diagrama_red="no"),
@@ -79,7 +69,7 @@ CHID = {
              "otra ONG; 98 % de brechas; defecto «no»"),
 }
 for nombre, (defecto, cambios, nota) in CHID.items():
-    agregar("G1", "Chidukwani et al. (2026), §4.3-4.4",
+    agregar("G1", "Chidukwani et al. (2026), sección 4.3-4.4",
             f"Pyme simulada inspirada en {nombre}: {nota}. Respuestas no descritas en el artículo: valor por defecto.",
             con(defecto, **cambios))
 
@@ -109,8 +99,7 @@ agregar("G2", "Límite (R097-R101)", "Dos áreas altas (correo y redes), el rest
         area_con(area_con(base("si"), "correo", "no"), "redes", "no"))
 agregar("G2", "Límite (R097-R101)", "Tres áreas altas, redes «sí».",
         area_con(area_con(area_con(base("si"), "cuentas", "no"), "respaldos", "no"), "correo", "no"))
-# Cortes de nivel: P = (198 + 33,5·p + 67·n) / 12, con p parciales y n «no».
-# n=3 → 33,25 (bajo); n=3 y p=1 → 36,04 (medio); n=9 → 66,75 (medio); n=9 y p=1 → 69,54 (alto)
+# Cortes de nivel: P = (198 + 33,5·p + 67·n) / 12 (n=3 bajo, n=9 medio, n=9 y p=1 alto).
 def area_np(area, n, p):
     r = base("si")
     claves = [c for c in ORDEN if AREA_DE[c] == area]

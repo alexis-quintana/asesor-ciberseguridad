@@ -1,10 +1,8 @@
-"""Pruebas de la validación con casos (50 casos, oráculo independiente) y de la verificación de la base."""
+# Pruebas de la validación con casos (50 casos, oráculo independiente) y de la verificación de la base.
 
-import copy
 import unittest
 
 from app import validacion, verificacion
-from app.conocimiento.base_reglas_prioridad import REGLAS_PRIORIDAD
 from tests import oraculo
 
 

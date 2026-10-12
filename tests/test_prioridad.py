@@ -1,10 +1,4 @@
-"""Pruebas de la prioridad de las recomendaciones (R126–R131).
-
-Resultados esperados calculados a mano. Nivel de la respuesta: «no» = 83,5 (alto),
-«parcialmente» = 50 (medio). Nivel del área: P < 34 bajo, P < 67 medio, P ≥ 67 alto.
-Celdas: R126 (alto, alto) alta; R127 (alto, medio) media; R128 (alto, bajo) baja;
-R129 (medio, alto) media; R130 (medio, medio) media; R131 (medio, bajo) baja.
-"""
+# Pruebas de la prioridad de las recomendaciones (R126–R131).
 
 import unittest
 
@@ -123,8 +117,7 @@ class PruebasListaPriorizada(unittest.TestCase):
                          ["alta"] * 18 + ["media"] * 6 + ["baja"] * 2)
         # Altas: cuentas (P = 69,5) y respaldos (P = 69,5) empatan; desempata el orden del cuestionario.
         self.assertEqual([i["area"] for i in lista[:18]], ["cuentas"] * 9 + ["respaldos"] * 9)
-        # Medias: las dos respuestas «parcialmente» en áreas altas (R129; P = 69,5) y luego
-        # las cuatro «no» de correo (R127; P = 44,4).
+        # Medias: dos «parcialmente» en áreas altas (R129) y luego las cuatro «no» de correo (R127).
         self.assertEqual(lista[18]["control"], MFA)
         self.assertEqual(lista[19]["control"], "alcance_proveedor_copias")
         self.assertEqual({i["area"] for i in lista[20:24]}, {"correo"})

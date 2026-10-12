@@ -1,41 +1,4 @@
-"""Cálculo de riesgo: probabilidad por área (flujo principal) y extensión de impacto.
-
-Flujo principal: probabilidad P(a) de cada área (promedio de sus 12 puntajes,
-Sihwi et al., 2016) y su nivel bajo/medio/alto; el riesgo global lo concluyen
-las reglas R097–R101 contando áreas con riesgo alto (ver base_conocimientos.py).
-
-Extensión opcional (investigación): impacto por área, riesgo R = P × I, bandas
-de Koeze y zona de la matriz de Sihwi. Solo se usa con la opción --con-impacto.
-Este módulo no modifica la base de conocimientos.
-
-Fuentes y adaptaciones:
-
-- Puntaje por respuesta: Sihwi et al. (2016), §II.D, p. 3. Cada respuesta se
-  puntúa en tres niveles (bajo 0–33, medio 34–66, alto 67–100). Sihwi asigna un
-  valor aleatorio dentro del rango; aquí se usa el punto medio (16.5, 50, 83.5)
-  para que el sistema dé siempre el mismo resultado (adaptación del equipo).
-- «no_se» se puntúa como «no»: criterio conservador del equipo (las respuestas
-  autodeclaradas pueden sobrestimar la seguridad real: Chidukwani et al., 2026).
-- Probabilidad por área: promedio de los puntajes de sus preguntas, Sihwi et al.
-  (2016), §II.D, p. 4, fórmula (1).
-- Impacto: respuesta entera de 1 a 5 convertida linealmente a 0.2–1.0, Koeze
-  (2017), «Modeling and calculating the risk», p. 42 impresa (Tabla 7). La
-  redacción de las cuatro preguntas de impacto es del equipo; el concepto de
-  impacto por área proviene de Sihwi (2016) y Koeze (2017).
-- Riesgo = probabilidad × impacto: Koeze (2017), p. 41 impresa. Bandas de
-  riesgo (muy bajo 0–0.20, bajo 0.21–0.40, medio 0.41–0.60, alto 0.61–0.80, muy
-  alto 0.81–1.00): Koeze (2017), p. 42 impresa (Tabla 8).
-- Zona global (verde, amarilla, roja) por la matriz probabilidad–impacto de
-  3×3: Sihwi et al. (2016), Tabla III, p. 3, e interpretación en §II.D, p. 4. La probabilidad media y el impacto
-  medio promedian las cuatro áreas (la fórmula (2) de Sihwi, p. 4, promedia el
-  impacto de sus preguntas). La zona se determina con los mismos cortes de nivel.
-
-Adaptaciones del equipo (a declarar en el informe): puntos medios en lugar de
-valores aleatorios; cortes continuos (bajo si < 34, medio si < 67) porque los
-rangos de Sihwi son enteros; promedio simple de las cuatro áreas para la
-probabilidad media, el impacto medio y el riesgo global (las fuentes no fijan
-el peso de cada área).
-"""
+# Cálculo de riesgo: probabilidad por área (flujo principal) y extensión de impacto.
 
 from __future__ import annotations
 
@@ -43,9 +6,7 @@ from dataclasses import dataclass, field
 
 from app.conocimiento.base_conocimientos import RESPUESTAS, VARIABLES
 
-# Sihwi et al. (2016), §II.D, p. 3: rangos bajo 0–33, medio 34–66, alto 67–100.
-# Punto medio de cada rango (adaptación del equipo). «no_se» puntúa como «no»
-# (criterio del equipo).
+# Sihwi et al. (2016), sección II.D, p. 3: punto medio de cada rango; «no_se» puntúa como «no» (criterio del equipo).
 PUNTAJE = {"si": 16.5, "parcialmente": 50.0, "no": 83.5, "no_se": 83.5}
 
 # Corte continuo de los niveles de Sihwi (adaptación del equipo).
@@ -74,7 +35,6 @@ PREGUNTAS_IMPACTO = {
 
 @dataclass
 class ResultadoRiesgo:
-    """Resultado del cálculo de riesgo de un caso."""
 
     probabilidad: dict = field(default_factory=dict)      # área -> 0–100
     nivel_probabilidad: dict = field(default_factory=dict)  # área -> bajo|medio|alto
@@ -92,7 +52,6 @@ class ResultadoRiesgo:
 
 
 def nivel_sihwi(valor):
-    """Nivel bajo, medio o alto de un valor de 0 a 100 (Sihwi et al., 2016, p. 3)."""
     valor = round(valor, 9)  # evita errores de coma flotante en los cortes
     if valor < CORTE_MEDIO:
         return "bajo"
@@ -102,7 +61,6 @@ def nivel_sihwi(valor):
 
 
 def banda_koeze(riesgo):
-    """Banda de riesgo de un valor de 0 a 1 (Koeze, 2017, Tabla 8, p. 42 impresa)."""
     riesgo = round(riesgo, 9)  # evita errores de coma flotante en los bordes
     for limite, nombre in BANDAS_KOEZE:
         if riesgo <= limite:
@@ -111,11 +69,6 @@ def banda_koeze(riesgo):
 
 
 def zona_sihwi(nivel_probabilidad, nivel_impacto):
-    """Zona de la matriz probabilidad–impacto de 3×3 (Sihwi et al., 2016, Tabla III, p. 3, e interpretación en p. 4).
-
-    Roja si ambos son altos; amarilla si (medio, medio), (alto, medio) o
-    (medio, alto); verde en cualquier otro caso.
-    """
     if nivel_probabilidad == "alto" and nivel_impacto == "alto":
         return "roja"
     if (nivel_probabilidad, nivel_impacto) in {
@@ -126,7 +79,6 @@ def zona_sihwi(nivel_probabilidad, nivel_impacto):
 
 
 def validar_impactos(impactos):
-    """Exige un entero de 1 a 5 por cada área; lanza ValueError si no se cumple."""
     desconocidas = [a for a in impactos if a not in AREAS]
     if desconocidas:
         raise ValueError(f"Área desconocida en los impactos: {', '.join(map(str, desconocidas))}")
@@ -152,12 +104,6 @@ def _validar_respuestas(respuestas):
 
 
 def evaluar_riesgo(respuestas, impactos):
-    """Calcula probabilidad, impacto y riesgo por área, la zona y el riesgo global.
-
-    «respuestas» es un dict {clave de control: respuesta} con las 48 preguntas;
-    «impactos» es un dict {área: entero de 1 a 5}. Lanza ValueError si faltan
-    datos o si algún valor no es válido.
-    """
     _validar_respuestas(respuestas)
     validar_impactos(impactos)
 
@@ -175,7 +121,7 @@ def evaluar_riesgo(respuestas, impactos):
         r.banda_area[area] = banda_koeze(riesgo)
         r.trazabilidad.append(
             f"{area}: P = promedio de {len(claves)} puntajes = {p:.1f} "
-            f"({r.nivel_probabilidad[area]}) [Sihwi 2016, §II.D, p. 4, fórmula (1)]; "
+            f"({r.nivel_probabilidad[area]}) [Sihwi 2016, sección II.D, p. 4, fórmula (1)]; "
             f"I = {impactos[area]}/5 = {i:.1f} [Koeze 2017, Tabla 7, p. 42]; "
             f"R = (P/100) × I = {riesgo:.3f} ({r.banda_area[area]}) "
             f"[Koeze 2017, p. 41 y Tabla 8, p. 42]"
@@ -193,7 +139,7 @@ def evaluar_riesgo(respuestas, impactos):
         f"Global: P media = {r.probabilidad_media:.1f} ({r.nivel_probabilidad_media}), "
         f"I media = (100/{n}) × suma de I = {r.impacto_medio:.1f} "
         f"({r.nivel_impacto_medio}); zona {r.zona} "
-        f"[Sihwi 2016, Tabla III, p. 3, e interpretación en §II.D, p. 4]"
+        f"[Sihwi 2016, Tabla III, p. 3, e interpretación en sección II.D, p. 4]"
     )
     r.trazabilidad.append(
         f"Riesgo global = promedio de los {n} riesgos por área = "
@@ -204,12 +150,6 @@ def evaluar_riesgo(respuestas, impactos):
 
 
 def hechos_probabilidad(respuestas):
-    """Hechos p_<área> (0–100) del flujo principal: solo necesitan las 48 respuestas.
-
-    P(a) es el promedio de los 12 puntajes del área (Sihwi et al., 2016, §II.D,
-    p. 4, fórmula (1)), redondeado a 9 decimales para que los cortes de nivel no
-    dependan de la coma flotante.
-    """
     _validar_respuestas(respuestas)
     hechos = {}
     for area in AREAS:
@@ -219,24 +159,11 @@ def hechos_probabilidad(respuestas):
 
 
 def hechos_nivel_respuesta(respuestas):
-    """Hechos nivel_r_<control>: nivel de Sihwi del puntaje de cada respuesta.
-
-    «no» y «no sé» (83,5) dan «alto»; «parcialmente» (50) da «medio»; «sí»
-    (16,5) da «bajo». Usan los mismos puntajes y cortes que la probabilidad
-    (Sihwi et al., 2016, p. 3); lo consume la prioridad (R126–R131).
-    """
     _validar_respuestas(respuestas)
     return {f"nivel_r_{c}": nivel_sihwi(PUNTAJE[respuestas[c]]) for c in VARIABLES}
 
 
 def hechos_numericos(respuestas, impactos):
-    """Hechos numéricos que consumen las reglas de nivel, banda y zona.
-
-    p_<área> (0–100), i100_<área> (0–100), r_<área> (0–1) y los equivalentes
-    «global» (promedios simples de las cuatro áreas, criterio del equipo).
-    Usa las mismas fórmulas que evaluar_riesgo; los valores se redondean a 9
-    decimales para que los cortes no dependan de la coma flotante.
-    """
     _validar_respuestas(respuestas)
     validar_impactos(impactos)
     hechos = {}
@@ -255,11 +182,6 @@ def hechos_numericos(respuestas, impactos):
 
 
 def riesgo_desde_hechos(hechos):
-    """Reconstruye un ResultadoRiesgo a partir de los hechos que dejó el motor.
-
-    Devuelve None si el motor no ejecutó las reglas de riesgo (faltan impactos).
-    La trazabilidad queda vacía: la explicación sale de las reglas disparadas.
-    """
     if "zona_global" not in hechos:
         return None
     r = ResultadoRiesgo()

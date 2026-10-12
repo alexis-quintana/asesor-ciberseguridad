@@ -1,15 +1,4 @@
-"""Interfaz de consola.
-
-Presenta las preguntas por área, recoge las respuestas y muestra el nivel de
-riesgo de cada área, el riesgo global y las recomendaciones priorizadas, con su
-explicación. Se ejecuta con: python main.py [--demo] [--explicar] [--con-impacto] [--validar] [--verificar]
-La opción --web abre en su lugar la interfaz web (Flask) en http://127.0.0.1:5000.
-
-La opción --con-impacto activa la extensión de investigación (impacto por área,
-bandas de Koeze y zona de Sihwi); sin ella se sigue el flujo del enunciado de P5.
-
-Fuente: requisito del proyecto P5 (prototipo con interfaz simple y explicación).
-"""
+# Interfaz de consola.
 
 from __future__ import annotations
 
@@ -27,13 +16,7 @@ from app.inferencia.riesgo import PREGUNTAS_IMPACTO, evaluar_riesgo, riesgo_desd
 
 OPCIONES = {"1": "si", "2": "no", "3": "parcialmente", "4": "no_se"}
 
-# Caso fijo de demostración: una tienda con comercio en línea (empresa simulada).
-# Todo «si» salvo lo indicado. Resultado esperado, calculado a mano:
-#   cuentas   9 «no», 1 «parcialmente», 2 «si»   -> P = 69,5 (alto)
-#   respaldos 9 «no», 1 «parcialmente», 2 «si»   -> P = 69,5 (alto)
-#   correo    4 «no» + 1 «no sé» (cuenta como «no») -> P = 44,4 (medio)
-#   redes     2 «no»                             -> P = 27,7 (bajo)
-#   dos áreas con riesgo alto (R097)             -> riesgo global alto
+# Caso de demostración (tienda en línea simulada): cuentas 69,5 alto, respaldos 69,5 alto, correo 44,4 medio, redes 27,7 bajo.
 CASO_DEMO = {clave: "si" for clave in VARIABLES}
 CASO_DEMO.update({clave: "no" for clave in (
     "cuentas_individuales", "admin_restringido", "carpetas_restringidas", "mfa_publico",
@@ -56,7 +39,6 @@ IMPACTOS_DEMO = {"cuentas": 4, "respaldos": 5, "correo": 3, "redes": 3}
 
 
 def preguntar(entrada=input):
-    """Hace las 48 preguntas agrupadas por área y devuelve las respuestas."""
     respuestas = {}
     numero = 0
     print("Opciones: 1 = sí, 2 = no, 3 = parcialmente, 4 = no sé")
@@ -76,7 +58,6 @@ def preguntar(entrada=input):
 
 
 def preguntar_impactos(entrada=input):
-    """Hace las 4 preguntas de impacto (una por área, escala 1–5) y las devuelve."""
     impactos = {}
     print("\n=== Impacto para el negocio (1 = mínimo, 5 = crítico) ===")
     for area in AREAS:
@@ -90,7 +71,6 @@ def preguntar_impactos(entrada=input):
 
 
 def mostrar_niveles(resultado):
-    """Imprime la probabilidad y el nivel de riesgo de cada área y el riesgo global."""
     hechos = resultado.hechos
     print("\n=== Nivel de riesgo por área ===")
     print(f"{'Área':<11}{'Prob.':>7}  Nivel")
@@ -100,7 +80,6 @@ def mostrar_niveles(resultado):
 
 
 def mostrar_riesgo(riesgo):
-    """Extensión: imprime impacto, riesgo y banda por área, la zona y el riesgo global."""
     print("\n=== Extensión: impacto, bandas y zona ===")
     print(f"{'Área':<11}{'Prob.':>7}  {'Nivel':<6}{'Impacto':>8}{'Riesgo':>8}  Banda")
     for area in AREAS:
@@ -115,7 +94,6 @@ def mostrar_riesgo(riesgo):
 
 
 def mostrar_resultado(resultado):
-    """Imprime hallazgos, recomendaciones y verificaciones."""
     print("\n=== Resultado ===")
     print(f"\nHallazgos ({len(resultado.hallazgos)}):")
     for hallazgo in resultado.hallazgos:
@@ -143,7 +121,6 @@ def mostrar_resultado(resultado):
 
 
 def main(argv=None):
-    """Ejecuta el asesor en consola. Devuelve el código de salida."""
     parser = argparse.ArgumentParser(
         description="Asesor de ciberseguridad para pequeñas empresas (sistema experto).",
     )
@@ -178,7 +155,7 @@ def main(argv=None):
             return 1
         url = f"http://127.0.0.1:{args.puerto}"
         print(f"Interfaz web en {url} (Ctrl+C para detener)")
-        threading.Timer(1.0, webbrowser.open, args=(url,)).start()  # abre el navegador
+        threading.Timer(1.0, webbrowser.open, args=(url,)).start()
         create_app().run(host="127.0.0.1", port=args.puerto)
         return 0
 

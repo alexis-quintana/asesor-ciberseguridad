@@ -1,11 +1,4 @@
-"""Pruebas de la traza del motor y de la explicación detallada.
-
-Caso de referencia: todo «si» salvo copia_datos_criticos = «no».
-Cálculo a mano: P(respaldos) = (11 × 16,5 + 83,5) / 12 = 22,083… (bajo, regla R106);
-las otras tres áreas valen 16,5 (bajo); R101 (ningún área alta ni media) → riesgo global
-bajo; el hallazgo sale de R025, su recomendación de R026, la prioridad de R128 (alto,
-bajo → baja) y R132 la sube a media por ser un control esencial.
-"""
+# Pruebas de la traza del motor y de la explicación detallada.
 
 import unittest
 
@@ -48,7 +41,7 @@ class PruebasTraza(unittest.TestCase):
         self.assertEqual(e["riesgo_parcial"]["reglas"], 48)
         self.assertEqual(e["riesgo_parcial"]["disparadas"], 1)
         self.assertEqual(e["recomendacion"]["disparadas"], 1)
-        self.assertEqual(e["nivel_probabilidad"]["disparadas"], 4)       # una por área
+        self.assertEqual(e["nivel_probabilidad"]["disparadas"], 4)
         self.assertEqual(e["prioridad"]["reglas"], 6 * 48)
         self.assertEqual(e["criticidad"]["disparadas"], 1)
         # La segunda pasada solo confirma que no queda nada por disparar.
@@ -98,7 +91,7 @@ class PruebasDetalle(unittest.TestCase):
         self.assertIn("no existe el hecho «hallazgo_", r126["motivo"])
         r097 = next(f for f in filas if f["id"] == "R097")
         self.assertIn("areas_riesgo_alto vale 0", r097["motivo"])
-        self.assertNotIn("R101", [f["id"] for f in filas])        # R101 sí se aplicó
+        self.assertNotIn("R101", [f["id"] for f in filas])
 
     def test_sin_hallazgos_no_hay_recomendaciones_detalladas(self):
         self.assertEqual(armar_detalle(ejecutar())["recomendaciones"], [])

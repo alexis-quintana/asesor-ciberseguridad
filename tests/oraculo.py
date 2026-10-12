@@ -1,13 +1,4 @@
-"""Oráculo: calcula el resultado ESPERADO de un caso sin usar el motor de inferencia.
-
-Reimplementa, de forma independiente y con aritmética directa, las tablas del informe
-(Tabla 3: puntajes y cortes; matriz de prioridad; controles esenciales; riesgo global).
-Solo toma de la base los nombres, el orden y el área de las 48 preguntas. No importa el motor,
-ni las reglas, ni riesgo.py: así, comparar el sistema con este oráculo prueba el motor
-y no una copia de su propio código.
-
-Cualquier cambio en una tabla del informe debe hacerse aquí y en la base a la vez.
-"""
+# Oráculo: calcula el resultado ESPERADO de un caso sin usar el motor de inferencia.
 
 from __future__ import annotations
 
@@ -31,7 +22,6 @@ ESENCIALES = {
 
 
 def nivel(valor):
-    """bajo si < 34; medio si < 67; alto en otro caso (se redondea para evitar ruido decimal)."""
     valor = round(valor, 6)
     return "bajo" if valor < 34 else ("medio" if valor < 67 else "alto")
 
@@ -59,7 +49,6 @@ PRIORIDAD = {  # (nivel de la respuesta, nivel del área) -> prioridad
 
 
 def esperado(respuestas, impactos=None):
-    """Devuelve el resultado esperado como dict simple (todo texto, número o lista)."""
     p = {a: sum(PUNTAJE[respuestas[c]] for c in ORDEN if AREA_DE[c] == a) / 12 for a in AREAS}
     niv = {a: nivel(p[a]) for a in AREAS}
     altas = sum(1 for a in AREAS if niv[a] == "alto")

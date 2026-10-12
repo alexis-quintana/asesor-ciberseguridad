@@ -1,12 +1,11 @@
-/* Evaluación por pasos (mejora progresiva: sin JavaScript se ven las cuatro áreas juntas
-   y el servidor valida las respuestas). Un paso por área y un último paso opcional. */
+/* Evaluación por pasos: un paso por área y un último paso opcional (sin JavaScript se ven todas las áreas). */
 (function () {
   var formulario = document.getElementById('cuestionario');
   if (!formulario) return;
   var pasos = Array.prototype.slice.call(document.querySelectorAll('.paso'));
   var preguntas = document.querySelectorAll('fieldset.pregunta');
   var total = preguntas.length, actual = 0;
-  var porArea = pasos.length - 1;                       /* el último paso es el impacto opcional */
+  var porArea = pasos.length - 1;
   var ant = document.getElementById('anterior'), sig = document.getElementById('siguiente');
   var enviar = document.getElementById('enviar'), aviso = document.getElementById('aviso-paso');
   var barra = document.getElementById('progreso-barra'), texto = document.getElementById('progreso-texto');

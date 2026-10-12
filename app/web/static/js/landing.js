@@ -1,11 +1,10 @@
-/* Landing: animaciones sutiles (solo opacidad y transform).
-   Sin JavaScript, sin IntersectionObserver o con «reducir movimiento» todo el contenido se ve de inmediato. */
+/* Landing: animaciones sutiles; sin JavaScript o con «reducir movimiento» todo se ve de inmediato. */
 (function () {
   'use strict';
   var reducir = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var hayIO = 'IntersectionObserver' in window;
 
-  var barrer = null;                       /* se define abajo: muestra sin animar lo que quedó por encima */
+  var barrer = null;
 
   /* ---- Cabecera: sombra discreta al desplazarse (no cambia su altura) ---- */
   var cab = document.querySelector('.cabecera');
@@ -22,12 +21,12 @@
 
   /* ---- Secciones y tarjetas: se revelan una sola vez al entrar en pantalla ---- */
   if (hayIO) {
-    var PASO = 70, MAX_RETRASO = 250;      /* 250 + 450 ms de transición = secuencia de 700 ms como máximo */
+    var PASO = 70, MAX_RETRASO = 250;
     var preparar = function (el, i) {
       el.classList.add('rv');
       el.style.setProperty('--d', Math.min(i * PASO, MAX_RETRASO) + 'ms');
     };
-    var grupos = [];                       /* {ancla, items}: cada grupo se revela completo, con escalonado */
+    var grupos = [];                
     var unidad = function (sel) {
       Array.prototype.forEach.call(document.querySelectorAll(sel), function (el) { grupos.push({ ancla: el, items: [el] }); });
     };
@@ -48,18 +47,18 @@
       entradas.forEach(function (e) {
         var items = e.target.__rv;
         if (!items) return;
-        if (!e.isIntersecting) {           /* ya quedó por encima (enlace directo o salto): se muestra sin animar */
+        if (!e.isIntersecting) {
           if (e.boundingClientRect.bottom <= 0) {
             observador.unobserve(e.target); e.target.__rv = null;
             items.forEach(function (el) { el.classList.remove('rv'); el.style.removeProperty('--d'); });
           }
           return;
         }
-        observador.unobserve(e.target);    /* una sola vez: no se vuelven a ocultar al subir */
+        observador.unobserve(e.target); 
         e.target.__rv = null;
         items.forEach(function (el) {
           el.classList.add('rv-in');
-          var limpiar = function () {      /* libera la transición para que el hover funcione sin retraso */
+          var limpiar = function () {
             el.classList.remove('rv', 'rv-in'); el.style.removeProperty('--d');
           };
           el.addEventListener('transitionend', function f(ev) {
@@ -117,11 +116,11 @@
   var escena = document.getElementById('escena');
   if (!escena || !hayIO) return;
 
-  escena.classList.add('pre');                                   /* estado inicial de la entrada */
+  escena.classList.add('pre');
   var entrada = new IntersectionObserver(function (entradas) {
     if (!entradas[0].isIntersecting) return;
     escena.classList.add('anima');
-    entrada.unobserve(escena); entrada.disconnect();             /* se ejecuta una sola vez */
+    entrada.unobserve(escena); entrada.disconnect();
     setTimeout(function () { escena.classList.add('flotando'); }, 1500);
   }, { threshold: 0.35 });
   entrada.observe(escena);

@@ -1,12 +1,4 @@
-"""Pruebas de la memoria de trabajo y del motor de inferencia.
-
-Los resultados esperados se escribieron a mano a partir de la base de
-conocimientos (R001–R096 por práctica, R097–R101 riesgo global por conteo de
-áreas con riesgo alto y medio, R102–R105 verificación de cuentas, respaldos,
-correo y redes, R106–R108 nivel de riesgo de cada área). Nivel de un área: bajo
-si P < 34, medio si P < 67, alto si P ≥ 67; «si» = 16,5, «parcialmente» = 50,
-«no» = «no_se» = 83,5 y P es el promedio de los 12 puntajes.
-"""
+# Pruebas de la memoria de trabajo y del motor de inferencia.
 
 import unittest
 
@@ -19,7 +11,6 @@ from app.inferencia.riesgo import AREAS
 
 
 def caso(**cambios):
-    """Respuestas «si» en las 48 preguntas, con los cambios indicados."""
     respuestas = {clave: "si" for clave in VARIABLES}
     respuestas.update(cambios)
     memoria = MemoriaTrabajo()
@@ -41,7 +32,6 @@ class PruebasMemoria(unittest.TestCase):
 
 
 def area_con(area, respuesta, cantidad=12):
-    """Cambia a «respuesta» las primeras «cantidad» preguntas del área."""
     claves = [c for c, v in VARIABLES.items() if v["area"] == area][:cantidad]
     return {c: respuesta for c in claves}
 
@@ -84,8 +74,7 @@ class PruebasMotor(unittest.TestCase):
                          ["R102"] + ["R106"] * 4 + ["R101"])
 
     def test_todo_no_genera_48_hallazgos(self):
-        # mfa_cobertura genera hallazgo con «no» y con «parcialmente» (operador «en»),
-        # así que con las 48 respuestas en «no» hay 48 hallazgos y 48 recomendaciones.
+        # mfa_cobertura genera hallazgo con «no» y «parcialmente»: con 48 «no» hay 48 hallazgos y 48 recomendaciones.
         resultado = inferir(caso(**{clave: "no" for clave in VARIABLES}))
         self.assertEqual(len(resultado.hallazgos), 48)
         self.assertIn("hallazgo_mfa_cobertura", [h["id"] for h in resultado.hallazgos])
@@ -134,7 +123,6 @@ class PruebasMotor(unittest.TestCase):
 
 
 class PruebasRiesgoGlobal(unittest.TestCase):
-    """Esperados calculados a mano con las fórmulas del docstring del módulo."""
 
     def test_dos_areas_altas_dan_riesgo_global_alto(self):
         # P(cuentas) = P(respaldos) = 83,5 (alto); correo y redes = 16,5 (bajo).
@@ -183,23 +171,20 @@ class PruebasRiesgoGlobal(unittest.TestCase):
 
 
 class PruebasCasoDemostracion(unittest.TestCase):
-    """Valores del caso de demostración calculados a mano (ver interfaz_consola.py)."""
 
     def test_niveles_y_riesgo_global(self):
         memoria = MemoriaTrabajo()
         memoria.cargar_respuestas(CASO_DEMO)
         resultado = inferir(memoria)
         h = resultado.hechos
-        # P = (9 × 83,5 + 50 + 2 × 16,5) / 12 = 834,5 / 12 en cuentas y respaldos;
-        # correo: (5 × 83,5 + 7 × 16,5) / 12; redes: (2 × 83,5 + 10 × 16,5) / 12.
+        # P = (9 × 83,5 + 50 + 2 × 16,5) / 12 = 69,5 en cuentas y respaldos.
         self.assertAlmostEqual(h["p_cuentas"], 834.5 / 12, places=6)
         self.assertAlmostEqual(h["p_respaldos"], 834.5 / 12, places=6)
         self.assertAlmostEqual(h["p_correo"], 533 / 12, places=6)
         self.assertAlmostEqual(h["p_redes"], 332 / 12, places=6)
         self.assertEqual([h[f"nivel_p_{a}"] for a in AREAS], ["alto", "alto", "medio", "bajo"])
         self.assertEqual(resultado.riesgo_global, "alto")
-        # Hallazgos: cuentas 9 «no» + mfa_cobertura «parcialmente» = 10; respaldos 9 + 1 = 10;
-        # correo 4 (el «no sé» no genera hallazgo); redes 2 → 26.
+        # Hallazgos: cuentas 10, respaldos 10, correo 4 (el «no sé» no genera hallazgo), redes 2 → 26.
         self.assertEqual(len(resultado.hallazgos), 26)
         self.assertEqual(resultado.verificaciones_solicitadas, ["correo"])
 
@@ -208,8 +193,7 @@ class PruebasCasoDemostracion(unittest.TestCase):
         memoria.cargar_respuestas(CASO_DEMO)
         memoria.cargar_impactos(IMPACTOS_DEMO)
         h = inferir(memoria).hechos
-        # P media = 211,1667 / 4 = 52,8 (medio); I media = 100 × (0,8 + 1 + 0,6 + 0,6) / 4
-        # = 75 (alto); riesgo = P/100 × I por área, promediado = 0,421 (medio).
+        # P media 52,8 (medio); I media 75 (alto); riesgo medio 0,421.
         self.assertEqual((h["nivel_p_global"], h["nivel_i_global"]), ("medio", "alto"))
         self.assertEqual(h["zona_global"], "amarilla")
         self.assertEqual(h["banda_global"], "medio")
@@ -222,12 +206,12 @@ class PruebasExplicacion(unittest.TestCase):
         regla = {
             "si": [{"hecho": "cuentas_individuales", "operador": "igual", "valor": "no"}],
             "entonces": {"tipo": "hallazgo", "id": "hallazgo_cuentas_individuales", "area": "cuentas"},
-            "fuentes": [{"id": "CHIDUKWANI_2026", "localizacion": "§4.3.2, p. 11"}],
+            "fuentes": [{"id": "CHIDUKWANI_2026", "localizacion": "sección 4.3.2, p. 11"}],
         }
         self.assertEqual(
             formatear_regla(regla),
             "SI cuentas_individuales = «no» ENTONCES hallazgo_cuentas_individuales "
-            "(área: cuentas) [Fuente: CHIDUKWANI_2026, §4.3.2, p. 11]",
+            "(área: cuentas) [Fuente: CHIDUKWANI_2026, sección 4.3.2, p. 11]",
         )
 
 

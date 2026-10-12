@@ -1,4 +1,4 @@
-"""Pruebas de la base de conocimientos."""
+# Pruebas de la base de conocimientos.
 
 import unittest
 

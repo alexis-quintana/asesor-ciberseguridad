@@ -1,7 +1,4 @@
-"""Pruebas del mantenimiento de reglas (lógica, sin Flask).
-
-Cada prueba usa un archivo temporal; ninguna toca datos/mantenimiento.json.
-"""
+# Pruebas del mantenimiento de reglas (lógica, sin Flask).
 
 import json
 import os
@@ -17,7 +14,7 @@ from app.inferencia.memoria import MemoriaTrabajo
 from app.inferencia.motor import inferir
 from app.inferencia.priorizacion import lista_priorizada
 
-FUENTE = {"fuente_id": "PAWAR_2022", "localizacion": "§4.2, p. 7"}
+FUENTE = {"fuente_id": "PAWAR_2022", "localizacion": "sección 4.2, p. 7"}
 
 
 def respuestas(**cambios):
@@ -33,7 +30,6 @@ def ejecutar(**cambios):
 
 
 class Base(unittest.TestCase):
-    """Apunta el motor a un archivo de mantenimiento temporal."""
 
     def setUp(self):
         self.carpeta = tempfile.TemporaryDirectory()
@@ -110,10 +106,10 @@ class PruebasReglasExistentes(Base):
         self.assertEqual(r.recomendaciones, {"cuentas": ["Asignar una cuenta individual a cada empleado."]})
 
     def test_editar_fuente_y_estado_de_validacion(self):
-        self.almacen.editar("R001", {"fuente_id": "PAWAR_2022", "localizacion": "§4.2, p. 7",
+        self.almacen.editar("R001", {"fuente_id": "PAWAR_2022", "localizacion": "sección 4.2, p. 7",
                                      "validacion_experto": "validada_por_fuente"})
         regla = next(r for r in mantenimiento.reglas_vigentes() if r["id"] == "R001")
-        self.assertEqual(regla["fuentes"], [{"id": "PAWAR_2022", "localizacion": "§4.2, p. 7"}])
+        self.assertEqual(regla["fuentes"], [{"id": "PAWAR_2022", "localizacion": "sección 4.2, p. 7"}])
         self.assertEqual(regla["validacion_experto"], "validada_por_fuente")
 
     def test_ediciones_invalidas(self):
@@ -124,7 +120,7 @@ class PruebasReglasExistentes(Base):
                 self.almacen.editar("R002", cambios)
         with self.assertRaises(ErrorMantenimiento):
             self.almacen.editar("R001", {"texto": "Una regla de hallazgo no tiene texto"})
-        with self.assertRaises(ErrorMantenimiento):                    # R106 es genérica
+        with self.assertRaises(ErrorMantenimiento):
             self.almacen.editar("R106", {"explicacion": "Explicación nueva para la regla"})
 
     def test_no_guarda_ediciones_que_no_cambian_nada(self):
@@ -189,7 +185,7 @@ class PruebasReglasNuevas(Base):
         for nombre, cambios in casos.items():
             with self.subTest(caso=nombre), self.assertRaises(ErrorMantenimiento):
                 self.nueva_regla(**cambios)
-        self.assertFalse(self.ruta.exists())          # nada se guardó
+        self.assertFalse(self.ruta.exists())
 
     def test_valores_de_tipos_distintos(self):
         self.nueva_regla(condiciones=[
@@ -218,7 +214,7 @@ class PruebasReglasNuevas(Base):
         self.assertEqual(regla["entonces"]["tipo"], "recomendacion_adicional")
         self.assertEqual(regla["etapa"], "recomendacion_adicional")
         self.assertEqual(regla["tipo_respaldo"], "agregada_por_administrador")
-        self.assertEqual(regla["fuentes"], [{"id": "PAWAR_2022", "localizacion": "§4.2, p. 7"}])
+        self.assertEqual(regla["fuentes"], [{"id": "PAWAR_2022", "localizacion": "sección 4.2, p. 7"}])
 
 
 class PruebasPersistencia(Base):
@@ -243,7 +239,7 @@ class PruebasPersistencia(Base):
             self.almacen.cargar()
         datos, error = self.almacen.cargar_seguro()
         self.assertIsNotNone(error)
-        self.assertEqual(len(ejecutar(cuentas_individuales="no").hallazgos), 1)   # usa la base original
+        self.assertEqual(len(ejecutar(cuentas_individuales="no").hallazgos), 1)
         with self.assertRaises(ErrorMantenimiento):
             self.almacen.desactivar("R001", "No se debe sobrescribir un archivo dañado")
 
@@ -259,7 +255,7 @@ class PruebasPersistencia(Base):
         self.assertTrue(filas["R133"]["es_nueva"])
         self.assertFalse(filas["R106"]["desactivable"])
         self.assertTrue(filas["R003"]["desactivable"])
-        self.assertEqual(len(filas), 133)                    # R001–R132 y la regla nueva
+        self.assertEqual(len(filas), 133)
 
 
 class PruebasHechos(unittest.TestCase):

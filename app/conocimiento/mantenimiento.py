@@ -1,37 +1,4 @@
-"""Mantenimiento de la base de conocimientos (módulo de actualización de conocimientos).
-
-Permite que una persona autorizada actualice las reglas sin editar el código
-cuando cambie un criterio o aparezca conocimiento nuevo:
-
-- editar el texto de una recomendación, la explicación, la evidencia, la fuente y
-  el estado de validación de una regla existente;
-- desactivar (y volver a activar) reglas de las etapas «riesgo_parcial»,
-  «recomendacion» y «verificacion»;
-- agregar reglas nuevas de recomendación sobre hechos ya definidos
-  (etapa «recomendacion_adicional»);
-- consultar el historial de cambios.
-
-La base original (base_conocimientos.py y compañía) NO se modifica: los cambios se
-guardan aparte, en un archivo JSON, y se aplican sobre ella cada vez que el motor
-infiere (reglas_vigentes). Así el motor, la lista priorizada, la explicación y el
-reporte usan siempre la misma versión de las reglas.
-
-Reglas del módulo:
-- Toda regla nueva debe citar una de las fuentes registradas con su localización
-  (regla del proyecto: «toda regla cita fuente»).
-- Las reglas del núcleo del modelo (niveles de riesgo, riesgo global, prioridad,
-  criticidad y la extensión de impacto) no se pueden desactivar ni cambiar de
-  condición, porque el resultado depende de ellas; solo se puede ajustar su
-  evidencia, fuente y estado de validación.
-- Las reglas nuevas solo concluyen recomendaciones: no producen hechos que otras
-  reglas consuman, de modo que no pueden crear conflictos ni ciclos.
-
-Fuente: componentes de un sistema experto, entre ellos la actualización del
-conocimiento — Sesión 12 del curso (Representación del Conocimiento) y Sihwi et al.
-(2016), §II.A–C (adquisición, representación y validación del conocimiento).
-Los controles de validación (identificadores, fuentes, hechos y operadores) siguen
-a verificar_base() de base_conocimientos.py. Solo biblioteca estándar.
-"""
+# Mantenimiento de la base de conocimientos (módulo de actualización de conocimientos).
 
 from __future__ import annotations
 
@@ -39,7 +6,6 @@ import hashlib
 import hmac
 import json
 import os
-import re
 import secrets
 import tempfile
 from datetime import datetime
@@ -58,21 +24,14 @@ PRIMER_ID_NUEVO = 133          # R001–R132 son de la base
 MAX_REGLAS_NUEVAS = 100
 MAX_CONDICIONES = 5
 MAX_HISTORIAL = 500
-CAMPOS_EDITABLES = ("texto", "explicacion", "evidencia_del_articulo", "validacion_experto", "fuentes")
 
 
 class ErrorMantenimiento(ValueError):
-    """Dato inválido o cambio no permitido en el mantenimiento de reglas."""
+    pass
 
 
 # --------------------------------------------------------------------------- hechos
 def hechos_permitidos():
-    """Hechos que una regla nueva puede usar en sus condiciones.
-
-    Devuelve {hecho: {"tipo", "valores" o rango, "descripcion"}}. Son las respuestas
-    del cuestionario, los hallazgos y los hechos derivados que existen antes de la
-    etapa «recomendacion_adicional» (no los de la extensión de impacto).
-    """
     hechos = {}
     for clave, v in VARIABLES.items():
         hechos[clave] = {"tipo": "respuesta", "valores": RESPUESTAS,
@@ -102,7 +61,6 @@ def _operadores():
 
 
 def _convertir_valor(hecho, operador, texto, info):
-    """Convierte el texto de un formulario al valor tipado de la condición."""
     tipo = info["tipo"]
     if operador == "en":
         partes = [p.strip() for p in str(texto).split(",") if p.strip()]
@@ -133,7 +91,6 @@ def _convertir_valor(hecho, operador, texto, info):
 
 
 def _normalizar_condiciones(condiciones):
-    """Valida y normaliza la lista de condiciones; devuelve la lista limpia."""
     permitidos = hechos_permitidos()
     operadores = _operadores()
     if not isinstance(condiciones, (list, tuple)) or not condiciones:
@@ -182,7 +139,6 @@ def _firma(condiciones, texto):
 
 # --------------------------------------------------------------------------- almacén
 class Almacen:
-    """Archivo JSON con los cambios del mantenimiento (se crea al primer cambio)."""
 
     def __init__(self, ruta=None):
         self.ruta = Path(ruta) if ruta else Path(os.environ.get("ASESOR_DATOS") or RUTA_DEFECTO)
@@ -194,7 +150,6 @@ class Almacen:
                 "ediciones": {}, "reglas_nuevas": [], "historial": []}
 
     def cargar(self):
-        """Lee el archivo. Si no existe devuelve datos vacíos; si está dañado, ErrorMantenimiento."""
         datos = self._vacio()
         if not self.ruta.exists():
             return datos
@@ -210,7 +165,6 @@ class Almacen:
         return datos
 
     def cargar_seguro(self):
-        """Como cargar(), pero un archivo dañado se ignora; devuelve (datos, error o None)."""
         try:
             return self.cargar(), None
         except ErrorMantenimiento as error:
@@ -238,7 +192,6 @@ class Almacen:
 
     # -- consultas
     def historial(self):
-        """Cambios registrados, el más reciente primero."""
         return list(reversed(self.cargar_seguro()[0]["historial"]))
 
     def hay_cambios(self):
@@ -253,7 +206,6 @@ class Almacen:
         raise ErrorMantenimiento(f"No existe la regla {regla_id}.")
 
     def desactivar(self, regla_id, motivo):
-        """Desactiva una regla de la base (solo etapas desactivables)."""
         regla = self._regla_base(regla_id)
         if regla["etapa"] not in ETAPAS_DESACTIVABLES:
             raise ErrorMantenimiento(
@@ -273,11 +225,6 @@ class Almacen:
             self._guardar(datos)
 
     def editar(self, regla_id, cambios):
-        """Edita campos permitidos de una regla de la base o de una regla nueva.
-
-        «cambios» puede traer: texto, explicacion, evidencia_del_articulo,
-        validacion_experto y fuente_id + localizacion.
-        """
         datos = self.cargar()
         nueva = next((r for r in datos["reglas_nuevas"] if r["id"] == regla_id), None)
         if nueva is not None:
@@ -322,7 +269,6 @@ class Almacen:
         self._guardar(datos)
 
     def restablecer(self, regla_id):
-        """Quita las ediciones de una regla de la base y la vuelve a su versión original."""
         self._regla_base(regla_id)
         datos = self.cargar()
         if regla_id in datos["ediciones"]:
@@ -333,7 +279,6 @@ class Almacen:
     # -- reglas nuevas
     def agregar(self, area, condiciones, texto, prioridad, fuente_id, localizacion,
                 evidencia, validacion_experto="pendiente", explicacion=""):
-        """Agrega una regla nueva de recomendación. Devuelve su identificador (R133, …)."""
         datos = self.cargar()
         if len(datos["reglas_nuevas"]) >= MAX_REGLAS_NUEVAS:
             raise ErrorMantenimiento(f"Se alcanzó el máximo de {MAX_REGLAS_NUEVAS} reglas nuevas.")
@@ -412,7 +357,6 @@ def _construir_nueva(regla_id, area, condiciones, texto, prioridad, fuente_id,
 
 
 def _aplicar_edicion(regla, edicion):
-    """Devuelve una copia de la regla con las ediciones permitidas aplicadas."""
     copia = {**regla, "entonces": dict(regla["entonces"]), "fuentes": [dict(f) for f in regla["fuentes"]]}
     if not edicion:
         return copia
@@ -438,12 +382,6 @@ def _base_completa():
 
 
 def reglas_vigentes(reglas_base=None, almacen=None):
-    """Reglas que usa el motor: la base, con los cambios del mantenimiento aplicados.
-
-    Quita las reglas desactivadas, aplica las ediciones y agrega las reglas nuevas.
-    Sin archivo de mantenimiento devuelve la base tal cual. Un archivo dañado se
-    ignora (se usa la base original) para no impedir el funcionamiento del asesor.
-    """
     base = _base_completa() if reglas_base is None else list(reglas_base)
     datos, _error = (almacen or Almacen()).cargar_seguro()
     desactivadas = set(datos["desactivadas"])
@@ -458,7 +396,6 @@ def reglas_vigentes(reglas_base=None, almacen=None):
 
 
 def listar_reglas(almacen=None):
-    """Filas para el panel: una por identificador de regla (las genéricas una sola vez)."""
     almacen = almacen or Almacen()
     datos, _ = almacen.cargar_seguro()
     desactivadas = set(datos["desactivadas"])
@@ -488,7 +425,6 @@ def listar_reglas(almacen=None):
 
 
 class _SinCambios(Almacen):
-    """Almacén vacío: sirve para listar la base original sin aplicar cambios."""
 
     def __init__(self):
         super().__init__(ruta=Path(os.devnull))
@@ -501,18 +437,7 @@ def siguiente_id_nuevo(almacen=None):
     return f"R{(almacen or Almacen()).cargar_seguro()[0]['siguiente']}"
 
 
-def numero_de_regla(regla_id):
-    return int(re.sub(r"\D", "", regla_id))
-
-
 class ClaveAdmin:
-    """Clave del administrador, guardada como resumen PBKDF2 (nunca en texto plano).
-
-    Se crea desde la propia página la primera vez que se entra a «Administrar
-    reglas» y se guarda junto al archivo de cambios (admin_clave.json). Fuente:
-    OWASP, Password Storage Cheat Sheet (PBKDF2-HMAC-SHA256 con sal aleatoria y
-    muchas iteraciones); implementación con la biblioteca estándar (hashlib).
-    """
 
     ITERACIONES = 310_000
     LARGO_MINIMO = 8

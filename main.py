@@ -1,7 +1,4 @@
-"""Punto de entrada: ejecuta el asesor (consola o web).
-
-Uso: python main.py [--demo] [--explicar] [--con-impacto] [--web] [--validar] [--verificar]
-"""
+# Punto de entrada: ejecuta el asesor (consola o web).
 
 import sys
 

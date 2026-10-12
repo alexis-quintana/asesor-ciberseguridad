@@ -1,19 +1,4 @@
-"""Módulo de explicación.
-
-Muestra qué reglas se dispararon y por qué, de dos maneras:
-
-- explicar(): lista técnica de las reglas SI-ENTONCES disparadas, con los valores
-  que tenían los hechos al dispararse y la fuente de cada regla.
-- armar_detalle(): explicación pensada para el usuario y para la demostración del
-  motor: cómo se calculó cada área (puntajes, umbrales y regla de nivel), cómo se
-  llegó al riesgo global, la cadena de reglas de cada recomendación (respuesta →
-  hallazgo → recomendación → prioridad), las reglas que NO se aplicaron y por qué,
-  y cuántas reglas evaluó el motor en cada etapa.
-
-Fuente: Sesión 12, Representación del Conocimiento (reglas SI-ENTONCES); la
-pregunta «¿cómo se llegó a este resultado?» y la lista de reglas disparadas con sus
-condiciones siguen la explicación de Sihwi et al. (2016), §II.D.
-"""
+# Módulo de explicación.
 
 from __future__ import annotations
 
@@ -27,8 +12,7 @@ _SIMBOLOS = {"igual": "=", "mayor_que": ">", "menor_que": "<",
 
 _NOMBRE_RESPUESTA = {"si": "Sí", "no": "No", "parcialmente": "Parcialmente", "no_se": "No sé"}
 
-# Etapas cuyas reglas conviene explicar cuando no se aplican (las de las 96 reglas
-# por práctica se resumen: una regla no se aplica porque la práctica está en «sí»).
+# Etapas cuyas reglas se explican cuando no se aplican; las 96 reglas por práctica se resumen.
 _ETAPAS_CON_MOTIVO = ("verificacion", "nivel_probabilidad", "riesgo_global", "prioridad", "criticidad")
 
 
@@ -66,7 +50,6 @@ def _conclusion(entonces):
 
 
 def formatear_regla(regla):
-    """Devuelve «SI <condiciones> ENTONCES <conclusión> [Fuente: id, localización]»."""
     condiciones = " Y ".join(_condicion(c) for c in regla["si"])
     fuentes = "; ".join(f"{f['id']}, {f['localizacion']}" for f in regla["fuentes"])
     return f"SI {condiciones} ENTONCES {_conclusion(regla['entonces'])} [Fuente: {fuentes}]"
@@ -77,11 +60,6 @@ def _observados(observados):
 
 
 def explicar(resultado):
-    """Lista los disparos del resultado, en orden, como reglas SI-ENTONCES.
-
-    Cada disparo muestra la regla (con la clave de su instancia, p. ej. R106:cuentas),
-    su motivo y los valores que tenían los hechos cuando se cumplió.
-    """
     if not resultado.disparos:
         return "No se disparó ninguna regla."
     lineas = []
@@ -96,7 +74,6 @@ def explicar(resultado):
 
 # --------------------------------------------------------------------------- detalle
 def _texto_natural(disparo, hechos):
-    """Frase en lenguaje natural para un disparo de la cadena de una recomendación."""
     regla, obs = disparo.regla, disparo.observados
     tipo = regla["entonces"]["tipo"]
     clave = disparo.clave or disparo.id
@@ -123,7 +100,6 @@ def _texto_natural(disparo, hechos):
 
 
 def _cadena(resultado, item):
-    """Disparos que llevaron a una recomendación, en orden de ejecución."""
     hechos = resultado.hechos
     if item["adicional"]:
         propios = [d for d in resultado.disparos if d.id == item["control"]]
@@ -182,7 +158,6 @@ def _detalle_global(resultado):
 
 
 def _primer_fallo(regla, hechos):
-    """Primera condición que impide que la regla se cumpla: (hecho, esperado, actual, falta)."""
     from app.inferencia.motor import OPERADORES
     for c in regla["si"]:
         if c["hecho"] not in hechos:
@@ -193,12 +168,6 @@ def _primer_fallo(regla, hechos):
 
 
 def reglas_no_aplicadas(resultado):
-    """Resume las reglas que se evaluaron y no se aplicaron, con el motivo.
-
-    Responde «¿qué ocurre cuando una regla no aplica?»: no se dispara y no produce
-    nada. Las reglas por práctica (R001–R096) se resumen aparte porque no se aplican
-    simplemente cuando la respuesta es «sí».
-    """
     disparadas = {d.clave or d.id for d in resultado.disparos}
     grupos = {}
     for regla in resultado.reglas:
@@ -228,7 +197,6 @@ def reglas_no_aplicadas(resultado):
 
 
 def armar_detalle(resultado):
-    """Reúne la explicación para mostrar en pantalla (ver el docstring del módulo)."""
     recomendaciones = []
     for item in lista_priorizada(resultado):
         control = item["control"]

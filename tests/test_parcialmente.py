@@ -1,10 +1,4 @@
-"""Pruebas del tratamiento de «Parcialmente» y «No sé».
-
-Esperados calculados a mano. Puntajes: «si» 16,5; «parcialmente» 50; «no» y «no sé»
-83,5. Con un solo «parcialmente» en un área de 12: P = (11 × 16,5 + 50) / 12 = 19,3
-(bajo); la respuesta es de nivel «medio» y la celda (medio, bajo) da prioridad «baja»
-(R131), salvo los controles esenciales, que suben a «media» (R132).
-"""
+# Pruebas del tratamiento de «Parcialmente» y «No sé».
 
 import unittest
 

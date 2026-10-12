@@ -1,10 +1,4 @@
-"""Interfaz web con Flask.
-
-Flask es solo una herramienta de implementación de la interfaz: la lógica del
-sistema experto (conocimiento, inferencia, resultados) no lo importa. Aquí solo se
-crea y configura la aplicación; las rutas están en rutas.py, las plantillas en
-templates/ y los estilos en static/css/style.css.
-"""
+# Interfaz web con Flask.
 
 from __future__ import annotations
 

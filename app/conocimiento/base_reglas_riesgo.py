@@ -1,22 +1,4 @@
-"""Reglas SI-ENTONCES del modelo de riesgo (niveles, bandas y zona).
-
-Convierte en reglas de la base de conocimientos los cortes que antes vivían
-solo como funciones de riesgo.py: nivel de probabilidad e impacto (Sihwi et al.,
-2016), banda de riesgo (Koeze, 2017) y zona de la matriz 3×3 (Sihwi et al.,
-2016). No modifica base_conocimientos.py.
-
-Flujo principal: R106–R108 dan el nivel de riesgo de cada área a partir de su
-probabilidad; con ellas, R097–R101 (base_conocimientos.py) concluyen el riesgo
-global. Extensión de investigación (solo con los cuatro impactos cargados):
-R109–R125 (nivel de impacto, banda de riesgo y zona).
-
-Las reglas son GENÉRICAS: una misma regla se aplica a cada ámbito (las cuatro
-áreas y «global») y se expande con expandir(). Se cuentan como 20 reglas
-distintas (R106–R125), no como las 20 × ámbitos instancias.
-
-Hechos numéricos de entrada (los calcula el motor a partir de las respuestas
-y los impactos): p_<ámbito> (0–100), i100_<ámbito> (0–100), r_<ámbito> (0–1).
-"""
+# Reglas SI-ENTONCES del modelo de riesgo (niveles, bandas y zona).
 
 from __future__ import annotations
 
@@ -25,8 +7,8 @@ from app.inferencia.riesgo import AREAS, CORTE_ALTO, CORTE_MEDIO
 
 AMBITOS = AREAS + ("global",)
 
-_SIHWI_NIVELES = [{"id": "SIHWI_2016", "localizacion": "§II.D, pp. 3-4 (puntaje por respuesta y categorías 0–33, 34–66 y 67–100)"}]
-_SIHWI_ZONA = [{"id": "SIHWI_2016", "localizacion": "Tabla III, p. 3 (matriz de 9 categorías); §II.D, p. 4 (interpretación)"}]
+_SIHWI_NIVELES = [{"id": "SIHWI_2016", "localizacion": "sección II.D, pp. 3-4 (puntaje por respuesta y categorías 0–33, 34–66 y 67–100)"}]
+_SIHWI_ZONA = [{"id": "SIHWI_2016", "localizacion": "Tabla III, p. 3 (matriz de 9 categorías); sección II.D, p. 4 (interpretación)"}]
 _KOEZE_BANDAS = [{"id": "KOEZE_2017", "localizacion": "Tabla 8, p. 42 impresa (bandas de riesgo)"}]
 
 _ADAPTACION_NIVELES = ("Sihwi da rangos enteros (0–33, 34–66, 67–100); el corte continuo "
@@ -116,10 +98,6 @@ REGLAS_RIESGO_GENERICAS = _construir()
 
 
 def expandir(genericas=None):
-    """Instancia cada regla genérica en cada uno de sus ámbitos.
-
-    Devuelve reglas concretas con «ambito» y una «clave» única (R106:cuentas).
-    """
     genericas = REGLAS_RIESGO_GENERICAS if genericas is None else genericas
     concretas = []
     for g in genericas:
@@ -141,7 +119,6 @@ REGLAS_RIESGO = expandir()
 
 
 def verificar_reglas_riesgo():
-    """Comprobación estructural de las reglas genéricas (lista de errores)."""
     errores = []
     ids = [r["id"] for r in REGLAS_RIESGO_GENERICAS]
     if len(ids) != len(set(ids)):

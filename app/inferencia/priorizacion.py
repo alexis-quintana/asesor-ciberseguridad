@@ -1,15 +1,4 @@
-"""Lista priorizada de recomendaciones.
-
-Ordena los hallazgos por la prioridad que concluyeron las reglas R126–R131 (y R132
-para los controles esenciales): alta, media o baja. Criterios de desempate, del
-equipo: primero el área con mayor probabilidad P y, a igual P, el orden de los
-controles en el cuestionario.
-
-Los textos de las recomendaciones salen de las reglas vigentes (la base con los
-cambios del mantenimiento), y las recomendaciones adicionales que concluyen las
-reglas nuevas del administrador se ordenan junto con las demás según la prioridad
-que se les asignó al crearlas.
-"""
+# Lista priorizada de recomendaciones.
 
 from __future__ import annotations
 
@@ -20,11 +9,6 @@ _RANGO = {"alta": 0, "media": 1, "baja": 2}
 
 
 def _recomendaciones(reglas=None):
-    """Texto de la recomendación de cada hallazgo (por id de hallazgo).
-
-    Solo cuenta las reglas de recomendación activas: si el mantenimiento desactivó
-    la regla de un hallazgo, ese hallazgo queda sin recomendación.
-    """
     reglas = mantenimiento.reglas_vigentes() if reglas is None else reglas
     textos = {}
     for regla in reglas:
@@ -34,12 +18,6 @@ def _recomendaciones(reglas=None):
 
 
 def lista_priorizada(resultado):
-    """Devuelve las recomendaciones ordenadas, cada una con su prioridad.
-
-    Cada elemento: orden, control, area, prioridad, pregunta, recomendacion y
-    p_area (probabilidad del área, 0–100). Las recomendaciones adicionales traen
-    «adicional» = True y como control el identificador de su regla.
-    """
     textos = _recomendaciones(resultado.reglas or None)
     orden_control = {c: i for i, c in enumerate(VARIABLES)}
     items = []

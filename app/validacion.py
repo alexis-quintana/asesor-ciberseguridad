@@ -1,19 +1,4 @@
-"""Validación del sistema con casos de prueba (sección 4 del informe).
-
-Lee tests/casos/casos_prueba.csv (50 casos con su resultado esperado, calculado por el oráculo
-independiente tests/oraculo.py), ejecuta el motor sobre la base original (sin los cambios del
-mantenimiento) y calcula las métricas del informe:
-
-- Exactitud: casos en que coinciden el nivel de cada área, el riesgo global, la lista de
-  hallazgos con su prioridad y su orden, las verificaciones y, si el caso trae impactos,
-  la zona y la banda global (fórmula 4).
-- Cobertura: reglas definidas (R001–R132) que se disparan al menos una vez en el conjunto (fórmula 5).
-- Consistencia: casos con resultado idéntico al ejecutarlos de nuevo y al cargar las respuestas
-  en otro orden (fórmula 6).
-- Reglas disparadas por caso (promedio, mínimo y máximo).
-
-Uso: python main.py --validar   (genera además docs/validacion/resultados_casos.csv y .md)
-"""
+# Validación del sistema con casos de prueba (sección 4 del informe).
 
 from __future__ import annotations
 
@@ -22,7 +7,7 @@ import json
 import random
 from pathlib import Path
 
-from app.conocimiento.base_conocimientos import REGLAS, VARIABLES
+from app.conocimiento.base_conocimientos import REGLAS
 from app.conocimiento.base_reglas_criticidad import REGLAS_CRITICIDAD
 from app.conocimiento.base_reglas_prioridad import REGLAS_PRIORIDAD
 from app.conocimiento.base_reglas_riesgo import REGLAS_RIESGO
@@ -44,11 +29,6 @@ def cargar_casos(ruta=CASOS):
 
 
 def ejecutar(respuestas, impactos=None, orden=None, reglas=None):
-    """Corre el motor y devuelve el resultado normalizado.
-
-    Sin «reglas» usa la base original; «reglas» es una tupla (base, riesgo, prioridad, criticidad)
-    y sirve para probar variantes alteradas (análisis de sensibilidad de la validación).
-    """
     juego = reglas or (REGLAS, REGLAS_RIESGO, REGLAS_PRIORIDAD, REGLAS_CRITICIDAD)
     claves = list(orden) if orden else list(respuestas)
     memoria = MemoriaTrabajo()
@@ -83,7 +63,6 @@ def _esperado(fila):
 
 
 def comparar(esperado, obtenido, con_impacto):
-    """Lista de diferencias entre lo esperado y lo obtenido (vacía si coincide)."""
     dif = []
     for a in AREAS:
         if esperado["niveles"][a] != obtenido["niveles"][a]:
@@ -105,7 +84,6 @@ def comparar(esperado, obtenido, con_impacto):
 
 
 def validar(casos=None, reglas=None):
-    """Ejecuta todos los casos y devuelve (filas por caso, métricas)."""
     casos = cargar_casos() if casos is None else casos
     filas, disparadas_total = [], set()
     consistentes = 0
@@ -154,11 +132,6 @@ def validar(casos=None, reglas=None):
 
 
 def mutaciones(casos=None):
-    """Sensibilidad de la validación: altera la base de cuatro formas y cuenta los casos que lo detectan.
-
-    Devuelve [(descripción, casos que fallan)]. Una validación que no detectara estas alteraciones
-    no serviría para encontrar errores reales de la base.
-    """
     import copy
     casos = cargar_casos() if casos is None else casos
 
@@ -216,7 +189,6 @@ def informe_texto(filas, m):
 
 
 def guardar(filas, m, carpeta=SALIDA):
-    """Escribe el detalle por caso (CSV) y el resumen (Markdown) para el Anexo C."""
     carpeta.mkdir(parents=True, exist_ok=True)
     with open(carpeta / "resultados_casos.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)

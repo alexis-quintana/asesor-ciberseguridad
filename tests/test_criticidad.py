@@ -1,9 +1,4 @@
-"""Pruebas de la regla de criticidad R132 (controles esenciales).
-
-Esperados calculados a mano. Un solo «no» en un área: P = (11 × 16,5 + 83,5) / 12 =
-22,1 (bajo); la respuesta es de nivel «alto» y la celda (alto, bajo) da «baja» (R128).
-Si el control es esencial, R132 la sube a «media».
-"""
+# Pruebas de la regla de criticidad R132 (controles esenciales).
 
 import unittest
 

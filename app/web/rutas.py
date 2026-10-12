@@ -1,24 +1,4 @@
-"""Interfaz web con Flask.
-
-Flask es solo una herramienta de implementación de la interfaz: la lógica del
-sistema experto (base, motor, explicación, reporte, mantenimiento) no lo importa.
-La parte pública no guarda nada: cada petición recibe las respuestas, las evalúa y
-devuelve la página.
-
-Rutas públicas, en el orden del flujo Presentación → Evaluación → Resultados: «/» (landing
-de presentación, opcional), «/evaluar» (cuestionario), «/resultado» (evaluación) y
-«/reporte» (reporte imprimible). Los estilos están en static/css/style.css.
-
-Rutas de administración («/admin…»): mantenimiento de reglas, a las que se llega con
-el botón «Administrar reglas» de la cabecera. No hay clave por defecto: la primera
-vez la página pide crear una (solo desde el mismo equipo) y la guarda como resumen
-PBKDF2. Opcionalmente, la variable de entorno ASESOR_ADMIN_CLAVE fija la clave y
-tiene prioridad. Las acciones usan un token anti-CSRF por sesión, y se bloquean los
-intentos tras varios fallos seguidos.
-
-Fuente: requisito del proyecto P5 (prototipo con interfaz simple y explicación);
-componente de actualización de conocimientos (Sesión 12; Sihwi et al., 2016, §II.A–C).
-"""
+# Interfaz web con Flask.
 
 from __future__ import annotations
 
@@ -26,11 +6,12 @@ import hmac
 import os
 import secrets
 import time
+from datetime import datetime
 
-from flask import abort, redirect, render_template, request, session, url_for
+from flask import Response, abort, redirect, render_template, request, session, url_for
 
 from app.conocimiento import mantenimiento
-from app.conocimiento.ayudas import AYUDAS, GUIA_RESPUESTAS, ayuda
+from app.conocimiento.ayudas import GUIA_RESPUESTAS, ayuda
 from app.conocimiento.base_conocimientos import FUENTES, RESPUESTAS, VARIABLES
 from app.inferencia.caso import evaluar
 from app.resultados.explicacion import armar_detalle, explicar, formatear_regla
@@ -39,6 +20,11 @@ from app.inferencia.priorizacion import lista_priorizada
 from app.resultados.reporte import (AVISO_LIMITES, NOMBRE_NIVEL, generar_reporte_html,
                        mensaje_sin_recomendaciones, verificaciones_concretas)
 from app.inferencia.riesgo import AREAS, PREGUNTAS_IMPACTO, riesgo_desde_hechos, validar_impactos
+
+try:                      # el PDF necesita reportlab; el resto de la aplicación no
+    from app.resultados.reporte_pdf import generar_reporte_pdf
+except ImportError:       # pragma: no cover
+    generar_reporte_pdf = None
 
 OPCIONES = (("si", "Sí"), ("parcialmente", "Parcialmente"), ("no", "No"), ("no_se", "No sé"))
 MAX_FALLOS = 5            # intentos de clave fallidos antes de bloquear
@@ -50,7 +36,6 @@ FILAS_CONDICIONES = 3
 
 
 def _preguntas_por_area():
-    """[(área, [(número, clave, pregunta, ayuda), ...]), ...] en el orden del cuestionario."""
     grupos, numero = [], 0
     for area in AREAS:
         items = []
@@ -67,7 +52,6 @@ def _numeros():
 
 
 def leer_formulario(form):
-    """Lee el formulario. Devuelve (respuestas, impactos o None, empresa, errores)."""
     errores = []
     respuestas = {c: form.get(f"r_{c}", "") for c in VARIABLES}
     faltan = [c for c, v in respuestas.items() if not v]
@@ -94,7 +78,6 @@ def leer_formulario(form):
 
 
 def registrar_rutas(app):
-    """Registra en la aplicación Flask las rutas públicas y de administración."""
     intentos = {"fallos": 0, "hasta": 0.0}
 
     def pagina_formulario(respuestas=None, impactos=None, empresa="", errores=()):
@@ -106,7 +89,6 @@ def registrar_rutas(app):
 
     @app.get("/")
     def landing():
-        """Presentación opcional del sistema: contexto, uso y antecedentes."""
         return render_template("landing.html", n_preguntas=len(VARIABLES), n_areas=len(AREAS))
 
     @app.get("/evaluar")
@@ -138,6 +120,26 @@ def registrar_rutas(app):
             return pagina_formulario(respuestas, {a: request.form.get(f"i_{a}", "") for a in AREAS},
                                      empresa, errores), 400
         return generar_reporte_html(evaluar(respuestas, impactos), empresa)
+
+    @app.post("/reporte.pdf")
+    def reporte_pdf():
+        respuestas, impactos, empresa, errores = leer_formulario(request.form)
+        if errores:
+            return pagina_formulario(respuestas, {a: request.form.get(f"i_{a}", "") for a in AREAS},
+                                     empresa, errores), 400
+        if generar_reporte_pdf is None:
+            return ("El PDF necesita la biblioteca reportlab (pip install -r requirements.txt). "
+                    "Mientras tanto use «Ver reporte imprimible».", 503)
+        contenido = generar_reporte_pdf(evaluar(respuestas, impactos), empresa)
+        return _descarga(contenido, "application/pdf", "pdf")
+
+    def _descarga(contenido, tipo, extension):
+        respuesta = Response(contenido, mimetype=tipo.split(";")[0])
+        respuesta.headers["Content-Type"] = tipo
+        respuesta.headers["Content-Disposition"] = (
+            f'attachment; filename="reporte_riesgo_{datetime.now():%Y%m%d}.{extension}"')
+        respuesta.headers["Cache-Control"] = "no-store"
+        return respuesta
 
     # ------------------------------------------------------------ administración
     def clave_entorno():
@@ -208,7 +210,6 @@ def registrar_rutas(app):
 
     @app.post("/admin/crear-clave")
     def admin_crear_clave():
-        """Primer uso: crea la clave del administrador (solo desde este equipo)."""
         if clave_configurada():
             abort(404)
         if not es_local():
@@ -252,7 +253,6 @@ def registrar_rutas(app):
         return redirect(url_for("admin"))
 
     def ejecutar(accion, *args, **kwargs):
-        """Ejecuta una acción de mantenimiento y vuelve al panel con el resultado."""
         try:
             accion(*args, **kwargs)
         except mantenimiento.ErrorMantenimiento as error:

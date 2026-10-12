@@ -1,4 +1,4 @@
-"""Pruebas del panel de mantenimiento de reglas (Flask)."""
+# Pruebas del panel de mantenimiento de reglas (Flask).
 
 import os
 import re
@@ -126,7 +126,7 @@ class PruebasAdmin(unittest.TestCase):
             "csrf": csrf, "texto": "Dar una cuenta propia a cada persona.",
             "explicacion": "Se identificó un hallazgo de cuentas compartidas.",
             "evidencia_del_articulo": "El estudio observó cuentas compartidas.",
-            "fuente_id": "CHIDUKWANI_2026", "localizacion": "§4.3.2, p. 11",
+            "fuente_id": "CHIDUKWANI_2026", "localizacion": "sección 4.3.2, p. 11",
             "validacion_experto": "pendiente"})
         self.assertEqual(r.status_code, 302)
         resultado = self.cliente.post("/resultado", data=formulario())
@@ -141,7 +141,7 @@ class PruebasAdmin(unittest.TestCase):
                  "hecho_1": "hallazgo_cuentas_individuales", "operador_1": "igual", "valor_1": "verdadero",
                  "texto": "Revisar juntas las copias externas y las cuentas compartidas.",
                  "area": "respaldos", "prioridad": "alta", "fuente_id": "PAWAR_2022",
-                 "localizacion": "§4.2, p. 7", "evidencia": "Prioriza los activos críticos.",
+                 "localizacion": "sección 4.2, p. 7", "evidencia": "Prioriza los activos críticos.",
                  "validacion_experto": "pendiente"}
         r = self.cliente.post("/admin/nueva", data=datos)
         self.assertEqual(r.status_code, 302)
@@ -170,13 +170,13 @@ class PruebasAdmin(unittest.TestCase):
         csrf = self.entrar()
         self.cliente.post("/admin/regla/R002", data={
             "csrf": csrf, "texto": "<script>alert(1)</script> Cuenta propia.",
-            "fuente_id": "CHIDUKWANI_2026", "localizacion": "§4.3.2, p. 11"})
+            "fuente_id": "CHIDUKWANI_2026", "localizacion": "sección 4.3.2, p. 11"})
         resultado = self.cliente.post("/resultado", data=formulario()).data.decode()
         self.assertNotIn("<script>alert(1)</script>", resultado)
         self.assertIn("&lt;script&gt;", resultado)
 
     def test_cerrar_sesion(self):
-        csrf = self.entrar()
+        self.entrar()
         self.cliente.post("/admin/salir", data={})
         self.assertIn("Clave de acceso", self.cliente.get("/admin").data.decode())
 
@@ -204,7 +204,6 @@ if __name__ == "__main__":
 
 @unittest.skipIf(create_app is None, "Flask no está instalado")
 class PruebasCrearClave(unittest.TestCase):
-    """Primer uso: la clave se crea desde la página, sin variables de entorno."""
 
     def setUp(self):
         carpeta = tempfile.TemporaryDirectory()

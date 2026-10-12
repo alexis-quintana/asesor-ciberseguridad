@@ -1,13 +1,4 @@
-"""Textos de ayuda del cuestionario.
-
-Para cada una de las 48 preguntas hay dos textos, redactados por el equipo para que
-una persona sin formación técnica pueda responder:
-
-- «ejemplo»: qué significa la pregunta y cómo reconocer una respuesta «Sí».
-- «verificar»: cómo comprobar la respuesta cuando se contesta «No sé».
-
-Son ayudas de la interfaz: no son reglas ni cambian el cálculo.
-"""
+# Textos de ayuda del cuestionario.
 
 from __future__ import annotations
 
@@ -221,5 +212,4 @@ AYUDAS = {
 
 
 def ayuda(clave):
-    """Ayuda de una pregunta ({'ejemplo', 'verificar'}); vacía si no existe."""
     return AYUDAS.get(clave, {"ejemplo": "", "verificar": ""})

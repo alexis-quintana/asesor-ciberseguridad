@@ -1,9 +1,4 @@
-"""Pruebas de las reglas SI-ENTONCES del modelo de riesgo (R106–R125).
-
-Los esperados de los casos fijos se calcularon a mano (ver test_riesgo.py);
-además se comprueba que la ruta por reglas coincide con evaluar_riesgo, que
-sigue siendo el cálculo independiente de referencia.
-"""
+# Pruebas de las reglas SI-ENTONCES del modelo de riesgo (R106–R125).
 
 import itertools
 import random
@@ -61,7 +56,7 @@ class PruebasCasosFijos(unittest.TestCase):
         self.assertEqual(r.banda_global, "muy_alto")
         self.assertEqual(r.nivel_probabilidad_media, "alto")
         ids = {d.id for d in resultado.disparos}
-        self.assertIn("R125", ids)  # (alto, alto) -> roja
+        self.assertIn("R125", ids)
 
     def test_todo_si_impacto_1(self):
         _, r = correr(todos("si"), {a: 1 for a in AREAS})
@@ -84,13 +79,12 @@ class PruebasCasosFijos(unittest.TestCase):
         memoria.cargar_respuestas(todos("si"))
         resultado = inferir(memoria)
         etapas = {d.etapa for d in resultado.disparos}
-        self.assertIn("nivel_probabilidad", etapas)  # nivel de cada área
+        self.assertIn("nivel_probabilidad", etapas)
         self.assertFalse(etapas & {"nivel_impacto", "banda_riesgo", "zona"})
         self.assertIsNone(riesgo_desde_hechos(resultado.hechos))
 
 
 class PruebasZona(unittest.TestCase):
-    """Las 9 celdas se verifican contra el mapeo de Sihwi, escrito a mano."""
 
     ESPERADO = {
         ("bajo", "bajo"): "verde", ("bajo", "medio"): "verde", ("bajo", "alto"): "verde",
@@ -109,7 +103,6 @@ class PruebasZona(unittest.TestCase):
 
 
 class PruebasEquivalencia(unittest.TestCase):
-    """La ruta por reglas debe dar lo mismo que evaluar_riesgo."""
 
     def comparar(self, respuestas, impactos):
         _, r = correr(respuestas, impactos)

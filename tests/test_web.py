@@ -1,4 +1,4 @@
-"""Pruebas de la interfaz web con el cliente de pruebas de Flask."""
+# Pruebas de la interfaz web con el cliente de pruebas de Flask.
 
 import unittest
 
@@ -39,14 +39,14 @@ class PruebasWeb(unittest.TestCase):
         self.assertIn("/evaluar?demo=1", html)
         self.assertIn("/static/css/style.css", html)
         for ref in ("Sihwi, S. W.", "Vitkus, D.", "Koeze, R.", "Fähnrich, N.", "Pawar, S.", "Chidukwani, A."):
-            self.assertIn(ref, html)                       # fuentes consultables
+            self.assertIn(ref, html)
         self.assertIn("Conoce qué puedes mejorar", html)
         self.assertIn("Antes de comenzar", html)
         self.assertIn("No sustituye una auditoría.", html)
         for autor in ("Sihwi et al. (2016)", "Vitkus et al. (2019)", "Koeze (2017)",
                       "Fähnrich y Roßnagel (2022)", "Pawar y Palivela (2022)", "Chidukwani et al. (2026)"):
-            self.assertIn(autor, html)                     # tarjetas de antecedentes
-        self.assertIn("Traducción:", html)                 # cada cita indica su traducción
+            self.assertIn(autor, html)
+        self.assertIn("Traducción:", html)
         self.assertIn("48 preguntas", html)
         self.assertIn("4 áreas de evaluación", html)
 
@@ -80,7 +80,7 @@ class PruebasWeb(unittest.TestCase):
         r = self.cliente.post("/resultado", data=formulario(empresa="Tienda <x>"))
         self.assertEqual(r.status_code, 200)
         texto = r.data.decode()
-        self.assertIn("Tienda &lt;x&gt;", texto)            # se escapa
+        self.assertIn("Tienda &lt;x&gt;", texto)
         self.assertIn("Recomendaciones priorizadas (26)", texto)
         self.assertIn("nivel-alto", texto)
         self.assertIn("Respuestas por verificar", texto)
@@ -121,6 +121,26 @@ class PruebasWeb(unittest.TestCase):
         self.assertTrue(texto.startswith("<!DOCTYPE html>"))
         self.assertIn("Empresa: Mi pyme", texto)
         self.assertIn("window.print()", texto)
+
+    def test_descarga_pdf(self):
+        datos = formulario(empresa="Mi pyme", impactos=IMPACTOS_DEMO)
+        r = self.cliente.post("/reporte.pdf", data=datos)
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.mimetype, "application/pdf")
+        self.assertIn("attachment", r.headers["Content-Disposition"])
+        self.assertIn(".pdf", r.headers["Content-Disposition"])
+        self.assertTrue(r.data.startswith(b"%PDF-"))
+
+    def test_descargas_rechazan_datos_manipulados(self):
+        datos = formulario()
+        datos["r_cuentas_individuales"] = "tal_vez"
+        self.assertEqual(self.cliente.post("/reporte.pdf", data=datos).status_code, 400)
+
+    def test_los_botones_de_exportacion_estan_en_resultados(self):
+        r = self.cliente.post("/resultado", data=formulario())
+        texto = r.data.decode()
+        self.assertIn('formaction="/reporte.pdf"', texto)
+        self.assertNotIn("/reporte.csv", texto)
 
     def test_leer_formulario(self):
         respuestas, impactos, empresa, errores = leer_formulario(

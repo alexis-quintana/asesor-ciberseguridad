@@ -1,10 +1,4 @@
-/* ==========================================================================
-   Asesor de ciberseguridad para pequeñas empresas — hoja de estilos única
-   Sistema de diseño: claridad tipo iOS (gris casi blanco, tarjetas blancas,
-   azul profundo como acento). Todas las pantallas comparten estos componentes.
-   Orden: 1 tokens · 2 base · 3 componentes · 4 cabecera · 5 landing
-          6 evaluación · 7 resultados · 8 administración · 9 responsive
-   ========================================================================== */
+/* Hoja de estilos única: 1 tokens · 2 base · 3 componentes · 4 cabecera · 5 landing · 6 evaluación · 7 resultados · 8 administración · 9 responsive */
 
 /* 1. Tokens ---------------------------------------------------------------- */
 :root {
@@ -17,7 +11,7 @@
   --linea: #e3e3e8;
   --linea-fuerte: #c9c9d1;
 
-  --brand: #0a4da8;            /* azul profundo */
+  --brand: #0a4da8;
   --brand-oscuro: #083b82;
   --brand-suave: #e8f0fc;
   --on-brand: #ffffff;
@@ -199,8 +193,7 @@ pre { background: #f3f4f7; border: 1px solid var(--linea); border-radius: var(--
   filter: drop-shadow(0 16px 18px rgba(20, 32, 56, .10)) drop-shadow(0 3px 5px rgba(20, 32, 56, .08)); }
 .escudo .contorno { fill: #fff; stroke: #aebfd8; stroke-width: 3; stroke-linejoin: round; stroke-dasharray: 1 1; stroke-dashoffset: 0; }
 .escudo .check { fill: none; stroke: var(--brand); stroke-width: 22; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1 1; stroke-dashoffset: 0; }
-/* Etiquetas: cuatro capas para que sus transformaciones no choquen
-   (posición › entrada › flotación › etiqueta con hover) */
+/* Etiquetas: capas separadas (posición › entrada › flotación › hover) */
 .etq-pos { position: absolute; max-width: 92%; }
 .etq-pos.a { left: 2%; top: 10%; } .etq-pos.b { right: 2%; bottom: 10%; }
 .etq { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; background: var(--superficie); border: 1px solid var(--linea);
@@ -223,8 +216,7 @@ pre { background: #f3f4f7; border: 1px solid var(--linea); border-radius: var(--
 .escena.anima .etq-pos.a .etq-in { animation: entra 320ms ease-out 1050ms both; }
 .escena.anima .etq-pos.b .etq-in { animation: entra 320ms ease-out 1170ms both; }
 
-/* Flotación (después de la entrada): solo vertical, sin giros, escala ni opacidad.
-   La segunda etiqueta arranca desfasada (equivale a un desfase de -2 s sin salto inicial). */
+/* Flotación (después de la entrada): solo vertical */
 @keyframes flota-a { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 @keyframes flota-b { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
 .escena.flotando .etq-pos.a .etq-fl { animation: flota-a 6s ease-in-out infinite; }
@@ -538,9 +530,7 @@ fieldset.pregunta legend + * { clear: both; }
 }
 
 
-/* Animaciones sutiles de la landing ------------------------------------------
-   Solo opacidad y transform. Todo el contenido es visible sin JavaScript: los estados ocultos
-   (.rv) los añade landing.js, y «reducir movimiento» los desactiva por completo. */
+/* Animaciones sutiles de la landing (solo opacidad y transform; los estados ocultos .rv los añade landing.js) */
 .cabecera { transition: box-shadow .2s ease, border-color .2s ease; }
 .cabecera.con-sombra { box-shadow: 0 4px 14px rgba(20, 32, 56, .08); border-bottom-color: transparent; }
 

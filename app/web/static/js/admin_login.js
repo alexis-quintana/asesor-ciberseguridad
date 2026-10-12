@@ -1,5 +1,4 @@
-/* Acceso de administrador: mostrar/ocultar la clave y aviso de campo vacío.
-   La clave se valida siempre en el servidor; aquí no se comprueba ni se guarda nada. */
+/* Acceso de administrador: mostrar/ocultar la clave y aviso de campo vacío (la validación es del servidor). */
 (function () {
   var form = document.getElementById('form-acceso');
   if (!form) return;

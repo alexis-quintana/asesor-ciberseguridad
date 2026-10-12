@@ -1,8 +1,4 @@
-"""Pruebas del cálculo de riesgo (motor v1).
-
-Los valores esperados se calcularon a mano con las fórmulas de Sihwi et al.
-(2016) y Koeze (2017); no se obtuvieron ejecutando el código.
-"""
+# Pruebas del cálculo de riesgo (motor v1).
 
 import unittest
 
@@ -13,7 +9,6 @@ from app.inferencia.riesgo import (
 
 
 def respuestas(valor="si", **cambios):
-    """Las 48 preguntas con la misma respuesta, con los cambios indicados."""
     datos = {clave: valor for clave in VARIABLES}
     datos.update(cambios)
     return datos
