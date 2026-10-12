@@ -13,8 +13,7 @@ bandas de Koeze (2017) y la zona de Sihwi (2016) son una extensión opcional (`-
 
 ## Requisitos
 Python 3.9 o superior. La lógica del sistema (base, memoria, motor, explicación,
-reporte HTML) usa solo biblioteca estándar; Flask (interfaz web) y ReportLab (reporte en PDF con
-gráficos) están en `requirements.txt`.
+reporte HTML) usa solo biblioteca estándar; Flask (interfaz web) está en `requirements.txt`.
 
 ## Instalación
 Desde la raíz del repositorio, crear y activar un entorno virtual e instalar dependencias:
@@ -43,7 +42,7 @@ python main.py --verificar  # busca reglas redundantes, conflictivas, circulares
 La web sigue el flujo Presentación → Evaluación → Resultados: `/` es una landing opcional (contexto, uso, fundamento y antecedentes), `/evaluar` el cuestionario y `/resultado` el diagnóstico. Los estilos están en `app/web/static/css/style.css`.
 
 En la web, el enlace «Cargar el caso de demostración» rellena el cuestionario y el botón
-«Descargar PDF» entrega el reporte con gráficos y estadísticas; «Ver reporte imprimible» abre la versión HTML para imprimir. Ambas salidas usan las mismas cifras (`app/resultados/estadisticas.py`). El formulario web va por pasos (una área por paso) con ayuda por pregunta. La web no
+«Ver reporte imprimible» abre el reporte de recomendaciones en HTML, listo para imprimir o guardar como PDF desde el navegador, con las cifras de `app/resultados/estadisticas.py`. El formulario web va por pasos (una área por paso) con ayuda por pregunta. La web no
 guarda ninguna respuesta del cuestionario; el resultado muestra la explicación detallada (valores, umbrales, cadena de reglas, reglas no aplicadas y estadísticas del motor).
 
 ## Mantenimiento de reglas (administrador)
@@ -65,7 +64,7 @@ asesor-ciberseguridad/
 ├── app/                         código del sistema experto
 │   ├── conocimiento/            BASE DE CONOCIMIENTOS: preguntas, reglas, fuentes, ayudas y mantenimiento
 │   ├── inferencia/              MOTOR: memoria de trabajo, encadenamiento hacia adelante, riesgo y priorización
-│   ├── resultados/              EXPLICACIÓN, estadísticas y reportes (HTML y PDF)
+│   ├── resultados/              EXPLICACIÓN, estadísticas y reporte imprimible (HTML)
 │   ├── web/                     interfaz web (Flask)
 │   │   ├── static/{css,js,img}/ estilos (css/style.css), scripts e imágenes
 │   │   ├── templates/           base, landing, evaluación, resultados y panel de reglas

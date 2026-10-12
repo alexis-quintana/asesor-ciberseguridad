@@ -6,9 +6,8 @@ import hmac
 import os
 import secrets
 import time
-from datetime import datetime
 
-from flask import Response, abort, redirect, render_template, request, session, url_for
+from flask import abort, redirect, render_template, request, session, url_for
 
 from app.conocimiento import mantenimiento
 from app.conocimiento.ayudas import GUIA_RESPUESTAS, ayuda
@@ -20,11 +19,6 @@ from app.inferencia.priorizacion import lista_priorizada
 from app.resultados.reporte import (AVISO_LIMITES, NOMBRE_NIVEL, generar_reporte_html,
                        mensaje_sin_recomendaciones, verificaciones_concretas)
 from app.inferencia.riesgo import AREAS, PREGUNTAS_IMPACTO, riesgo_desde_hechos, validar_impactos
-
-try:                      # el PDF necesita reportlab; el resto de la aplicación no
-    from app.resultados.reporte_pdf import generar_reporte_pdf
-except ImportError:       # pragma: no cover
-    generar_reporte_pdf = None
 
 OPCIONES = (("si", "Sí"), ("parcialmente", "Parcialmente"), ("no", "No"), ("no_se", "No sé"))
 MAX_FALLOS = 5            # intentos de clave fallidos antes de bloquear
@@ -120,26 +114,6 @@ def registrar_rutas(app):
             return pagina_formulario(respuestas, {a: request.form.get(f"i_{a}", "") for a in AREAS},
                                      empresa, errores), 400
         return generar_reporte_html(evaluar(respuestas, impactos), empresa)
-
-    @app.post("/reporte.pdf")
-    def reporte_pdf():
-        respuestas, impactos, empresa, errores = leer_formulario(request.form)
-        if errores:
-            return pagina_formulario(respuestas, {a: request.form.get(f"i_{a}", "") for a in AREAS},
-                                     empresa, errores), 400
-        if generar_reporte_pdf is None:
-            return ("El PDF necesita la biblioteca reportlab (pip install -r requirements.txt). "
-                    "Mientras tanto use «Ver reporte imprimible».", 503)
-        contenido = generar_reporte_pdf(evaluar(respuestas, impactos), empresa)
-        return _descarga(contenido, "application/pdf", "pdf")
-
-    def _descarga(contenido, tipo, extension):
-        respuesta = Response(contenido, mimetype=tipo.split(";")[0])
-        respuesta.headers["Content-Type"] = tipo
-        respuesta.headers["Content-Disposition"] = (
-            f'attachment; filename="reporte_riesgo_{datetime.now():%Y%m%d}.{extension}"')
-        respuesta.headers["Cache-Control"] = "no-store"
-        return respuesta
 
     # ------------------------------------------------------------ administración
     def clave_entorno():

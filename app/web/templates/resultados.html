@@ -151,8 +151,7 @@
   <input type="hidden" name="empresa" value="{{ empresa }}">
   {% for clave, valor in respuestas.items() %}<input type="hidden" name="r_{{ clave }}" value="{{ valor }}">{% endfor %}
   {% for a, v in impactos.items() %}<input type="hidden" name="i_{{ a }}" value="{{ v }}">{% endfor %}
-  <button type="submit" class="btn" formaction="/reporte.pdf" formtarget="_self">{{ icono("doc") }} Descargar PDF</button>
-  <button type="submit" class="btn sec">Ver reporte imprimible</button>
+  <button type="submit" class="btn">{{ icono("doc") }} Ver reporte imprimible</button>
   <a class="btn sec" href="/evaluar">Nueva evaluación</a>
 </form>
 

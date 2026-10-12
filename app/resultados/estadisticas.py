@@ -1,4 +1,4 @@
-# Estadísticas del resultado: fuente única para el reporte HTML y el PDF.
+# Estadísticas del resultado: fuente única para el reporte HTML.
 
 from __future__ import annotations
 

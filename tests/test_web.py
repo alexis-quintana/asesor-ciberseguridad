@@ -122,25 +122,17 @@ class PruebasWeb(unittest.TestCase):
         self.assertIn("Empresa: Mi pyme", texto)
         self.assertIn("window.print()", texto)
 
-    def test_descarga_pdf(self):
-        datos = formulario(empresa="Mi pyme", impactos=IMPACTOS_DEMO)
-        r = self.cliente.post("/reporte.pdf", data=datos)
-        self.assertEqual(r.status_code, 200)
-        self.assertEqual(r.mimetype, "application/pdf")
-        self.assertIn("attachment", r.headers["Content-Disposition"])
-        self.assertIn(".pdf", r.headers["Content-Disposition"])
-        self.assertTrue(r.data.startswith(b"%PDF-"))
-
-    def test_descargas_rechazan_datos_manipulados(self):
+    def test_reporte_rechaza_datos_manipulados(self):
         datos = formulario()
         datos["r_cuentas_individuales"] = "tal_vez"
-        self.assertEqual(self.cliente.post("/reporte.pdf", data=datos).status_code, 400)
+        self.assertEqual(self.cliente.post("/reporte", data=datos).status_code, 400)
 
-    def test_los_botones_de_exportacion_estan_en_resultados(self):
+    def test_el_boton_del_reporte_esta_en_resultados(self):
         r = self.cliente.post("/resultado", data=formulario())
         texto = r.data.decode()
-        self.assertIn('formaction="/reporte.pdf"', texto)
-        self.assertNotIn("/reporte.csv", texto)
+        self.assertIn('action="/reporte"', texto)
+        self.assertIn("Ver reporte imprimible", texto)
+        self.assertNotIn(".pdf", texto)
 
     def test_leer_formulario(self):
         respuestas, impactos, empresa, errores = leer_formulario(
