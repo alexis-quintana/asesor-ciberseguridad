@@ -72,7 +72,7 @@ asesor-ciberseguridad/
 │   ├── inferencia/              MOTOR: memoria de trabajo, encadenamiento hacia adelante, riesgo y priorización
 │   ├── resultados/              EXPLICACIÓN, estadísticas y reporte imprimible (HTML)
 │   ├── web/                     interfaz web (Flask)
-│   │   ├── static/{css,js,img}/ estilos (css/style.css), scripts e imágenes
+│   │   ├── static/{css,js}/     estilos (css/style.css) y scripts
 │   │   ├── templates/           base, landing, evaluación, resultados y panel de reglas
 │   │   ├── rutas.py             rutas públicas y de administración
 │   │   └── __init__.py          creación y configuración de la aplicación
