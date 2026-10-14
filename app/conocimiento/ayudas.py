@@ -12,7 +12,7 @@ GUIA_RESPUESTAS = (
 )
 
 AYUDAS = {
-    # ------------------------------------------------------------------ cuentas
+    # --- cuentas
     "cuentas_individuales": {
         "ejemplo": "Cada persona entra con su propio usuario y contraseña. Es «No» si varias personas comparten un mismo usuario.",
         "verificar": "Pregunte a quien administra los equipos o el correo si existen usuarios compartidos del tipo «caja» o «ventas».",
@@ -61,7 +61,7 @@ AYUDAS = {
         "ejemplo": "Si un proveedor de TI atiende los sistemas, hay un acuerdo escrito de qué accesos tiene y qué tareas de seguridad le corresponden.",
         "verificar": "Pida al proveedor (o revise el contrato) qué accesos tiene y qué tareas de seguridad realiza.",
     },
-    # ---------------------------------------------------------------- respaldos
+    # --- respaldos
     "copia_datos_criticos": {
         "ejemplo": "Se copian periódicamente los archivos sin los cuales el negocio no puede trabajar (clientes, facturas, inventario).",
         "verificar": "Pregunte a quien hace las copias qué archivos incluye y pida ver la última copia realizada.",
@@ -110,7 +110,7 @@ AYUDAS = {
         "ejemplo": "Existe un procedimiento escrito para volver a trabajar tras una pérdida de datos (qué se recupera primero y quién lo hace).",
         "verificar": "Pregunte a la gerencia si existe un documento con esos pasos.",
     },
-    # ------------------------------------------------------------------- correo
+    # --- correo
     "formacion_general": {
         "ejemplo": "El personal ha recibido alguna capacitación o charla sobre correos falsos y estafas por correo.",
         "verificar": "Pregunte a la gerencia cuándo fue la última capacitación y quiénes asistieron.",
@@ -159,7 +159,7 @@ AYUDAS = {
         "ejemplo": "Si llegó un correo falso o alguien cayó en uno, la empresa lo comentó con todos y reforzó la capacitación.",
         "verificar": "Pregunte si hubo algún incidente de este tipo y qué se hizo después.",
     },
-    # -------------------------------------------------------------------- redes
+    # --- redes
     "cortafuegos": {
         "ejemplo": "El cortafuegos (firewall) filtra lo que entra y sale de la red. Puede ser el del router o un equipo especial.",
         "verificar": "Pregunte a quien instaló la red o al proveedor de Internet si el router tiene el cortafuegos activado.",

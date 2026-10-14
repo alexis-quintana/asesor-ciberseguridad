@@ -198,9 +198,6 @@ class PruebasAdmin(unittest.TestCase):
         self.assertIn("Faltan 2 respuestas por contestar (preguntas 1, 2)", r.data.decode())
 
 
-if __name__ == "__main__":
-    unittest.main()
-
 
 @unittest.skipIf(create_app is None, "Flask no está instalado")
 class PruebasCrearClave(unittest.TestCase):
@@ -273,3 +270,7 @@ class PruebasCrearClave(unittest.TestCase):
         otro = create_app().test_client()
         r = otro.post("/admin/crear-clave", data={"clave": "intruso-123", "confirmacion": "intruso-123"})
         self.assertEqual(r.status_code, 404)
+
+
+if __name__ == "__main__":
+    unittest.main()

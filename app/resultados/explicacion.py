@@ -12,7 +12,7 @@ _SIMBOLOS = {"igual": "=", "mayor_que": ">", "menor_que": "<",
 
 _NOMBRE_RESPUESTA = {"si": "Sí", "no": "No", "parcialmente": "Parcialmente", "no_se": "No sé"}
 
-# Etapas cuyas reglas se explican cuando no se aplican; las 96 reglas por práctica se resumen.
+# Etapas cuyas reglas no aplicadas se explican.
 _ETAPAS_CON_MOTIVO = ("verificacion", "nivel_probabilidad", "riesgo_global", "prioridad", "criticidad")
 
 
@@ -72,7 +72,7 @@ def explicar(resultado):
     return "\n".join(lineas)
 
 
-# --------------------------------------------------------------------------- detalle
+# --- detalle
 def _texto_natural(disparo, hechos):
     regla, obs = disparo.regla, disparo.observados
     tipo = regla["entonces"]["tipo"]

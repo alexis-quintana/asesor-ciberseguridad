@@ -1,4 +1,4 @@
-# Base de conocimientos preliminar: Asesor ciberseguridad para pequeñas empresas.
+# Base de conocimientos: controles, fuentes y reglas R001–R105.
 
 from __future__ import annotations
 
@@ -76,7 +76,7 @@ FUENTES = {
     },
 }
 
-# (clave, pregunta, respuesta que activa hallazgo, evidencia, recomendación, fuente, sección y página)
+# (clave, pregunta, respuesta, evidencia, recomendación, fuente, localización)
 CONTROLES = {
     "cuentas": [
         ("cuentas_individuales", "¿Cada empleado utiliza una cuenta individual?", "no", "El estudio observó cuentas compartidas en una pyme.", "Asignar una cuenta individual a cada empleado.", "CHIDUKWANI_2026", "sección 4.3.2, pp. 11-12"),
@@ -143,7 +143,7 @@ def _construir_reglas():
     for area, controles in CONTROLES.items():
         for clave, pregunta, respuesta, evidencia, medida, fuente, localizacion in controles:
             hallazgo = f"hallazgo_{clave}"
-            # «Parcialmente» también es hallazgo (criterio del equipo; Chidukwani et al., 2026, sección 4.4.2.7, p. 17).
+            # «Parcialmente» también genera hallazgo (criterio del equipo).
             if respuesta == "no":
                 respuesta = RESPUESTAS_HALLAZGO
                 evidencia = f"{evidencia} {NOTA_PARCIAL}"
@@ -184,7 +184,7 @@ def _construir_reglas():
 
 REGLAS = _construir_reglas()
 
-# Riesgo global R097–R101: el umbral de dos áreas altas viene del enunciado de P5; el resto es criterio del equipo.
+# R097–R101: umbral de dos áreas altas del enunciado P5; resto, criterio del equipo.
 _FUENTES_GLOBAL = [
     {"id": "SIHWI_2016", "localizacion": "sección II.D, p. 4 (conclusión: combinación de resultados parciales)"},
 ]

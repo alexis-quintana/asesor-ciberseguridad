@@ -1,4 +1,4 @@
-# Mantenimiento de la base de conocimientos (módulo de actualización de conocimientos).
+# Mantenimiento de reglas por el administrador.
 
 from __future__ import annotations
 
@@ -30,7 +30,7 @@ class ErrorMantenimiento(ValueError):
     pass
 
 
-# --------------------------------------------------------------------------- hechos
+# --- hechos
 def hechos_permitidos():
     hechos = {}
     for clave, v in VARIABLES.items():
@@ -137,7 +137,7 @@ def _firma(condiciones, texto):
     return json.dumps([condiciones, texto], sort_keys=True, ensure_ascii=False)
 
 
-# --------------------------------------------------------------------------- almacén
+# --- almacén
 class Almacen:
 
     def __init__(self, ruta=None):
@@ -323,7 +323,7 @@ class Almacen:
         self._guardar(datos)
 
 
-# --------------------------------------------------------------------------- reglas
+# --- reglas
 def _construir_nueva(regla_id, area, condiciones, texto, prioridad, fuente_id,
                      localizacion, evidencia, validacion_experto, explicacion):
     if area not in AREAS:

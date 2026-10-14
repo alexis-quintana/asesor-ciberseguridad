@@ -83,7 +83,7 @@ class PruebasDetalle(unittest.TestCase):
         self.assertEqual(detalle["umbrales"], {"medio": 34, "alto": 67})
 
     def test_reglas_que_no_se_aplicaron(self):
-        # Todo «si»: no hay hallazgos, así que ninguna regla de prioridad ni de criticidad se aplica.
+        # Todo «si»: sin hallazgos, no se aplica prioridad ni criticidad.
         r = ejecutar()
         filas = reglas_no_aplicadas(r)
         r126 = next(f for f in filas if f["id"] == "R126")

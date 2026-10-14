@@ -209,7 +209,6 @@ main {
 }
 
 .rejilla-3>.tarjeta,
-.rejilla-4>.tarjeta,
 .fila-1>.tarjeta,
 .fila-areas>.tarjeta {
   margin-top: 0;
@@ -251,15 +250,6 @@ main {
   background: var(--brand-suave);
   border-color: var(--brand);
   color: var(--brand-oscuro);
-}
-
-.btn.fantasma {
-  background: transparent;
-  color: var(--brand);
-}
-
-.btn.fantasma:hover {
-  background: var(--brand-suave);
 }
 
 .btn.peligro {
@@ -934,7 +924,6 @@ pre {
 
 /* Flotación (después de la entrada): solo vertical */
 @keyframes flota-a {
-
   0%,
   100% {
     transform: translateY(0);
@@ -946,7 +935,6 @@ pre {
 }
 
 @keyframes flota-b {
-
   0%,
   100% {
     transform: translateY(0);
@@ -965,13 +953,11 @@ pre {
   animation: flota-b 7s ease-in-out 5s infinite;
 }
 
-.escena.pausada .etq-pos .etq-fl,
 .escena.fuera .etq-pos .etq-fl {
   animation-play-state: paused !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
-
   .escena .contorno,
   .escena .check,
   .escena .etq-in,
@@ -1010,16 +996,6 @@ pre {
   gap: var(--e4);
 }
 
-.rejilla-4 {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--e4);
-}
-
-.paso-tarjeta {
-  position: relative;
-}
-
 .icono-redondo {
   display: grid;
   place-items: center;
@@ -1036,60 +1012,9 @@ pre {
   height: 24px;
 }
 
-.num {
-  position: absolute;
-  top: 18px;
-  right: 20px;
-  color: var(--linea-fuerte);
-  font: 800 1.6rem/1 var(--fuente-titulo);
-}
-
-.area-card h3 {
-  margin-bottom: 4px;
-}
-
-.area-card p {
-  color: var(--suave);
-  font-size: .92rem;
-  margin: 0;
-}
-
-.dato {
-  font: 800 2rem/1.1 var(--fuente-titulo);
-  color: var(--brand);
-  letter-spacing: -.02em;
-  margin-bottom: var(--e2);
-}
-
 .fuente {
   color: var(--suave);
   font-size: .82rem;
-}
-
-.entregables {
-  list-style: none;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px var(--e5);
-}
-
-.entregables li {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-}
-
-.entregables .ico {
-  color: var(--bajo);
-  margin-top: 3px;
-}
-
-.dos-col {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--e5);
-  align-items: start;
 }
 
 .banda {
@@ -1150,30 +1075,6 @@ pre {
   color: var(--tinta);
   display: block;
   font-size: .9rem;
-}
-
-.aviso-citas {
-  color: var(--suave);
-  font-size: .86rem;
-  margin-top: var(--e4);
-}
-
-.limites {
-  list-style: none;
-  padding: 0;
-  display: grid;
-  gap: 10px;
-}
-
-.limites li {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-}
-
-.limites .ico {
-  color: var(--medio);
-  margin-top: 3px;
 }
 
 .cierre {
@@ -1560,10 +1461,6 @@ fieldset.pregunta legend+* {
 
 .aviso-paso {
   margin-top: var(--e3);
-}
-
-.nav-movil {
-  display: none;
 }
 
 /* 7. Resultados ---------------------------------------------------------------- */
@@ -2160,8 +2057,6 @@ fieldset.pregunta legend+* {
 
 /* 9. Responsive --------------------------------------------------------------------- */
 @media (max-width: 1000px) {
-
-  .rejilla-4,
   .fila-areas {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -2187,9 +2082,7 @@ fieldset.pregunta legend+* {
     min-height: 280px;
   }
 
-  .rejilla-3,
-  .dos-col,
-  .entregables {
+  .rejilla-3 {
     grid-template-columns: 1fr;
   }
 
@@ -2285,10 +2178,8 @@ fieldset.pregunta legend+* {
 }
 
 @media (max-width: 560px) {
-
   .fila-1,
-  .fila-areas,
-  .rejilla-4 {
+  .fila-areas {
     grid-template-columns: 1fr;
   }
 
@@ -2312,7 +2203,6 @@ fieldset.pregunta legend+* {
 }
 
 @media print {
-
   .cabecera,
   .barra-acciones,
   .lateral,
@@ -2323,11 +2213,6 @@ fieldset.pregunta legend+* {
   body {
     background: #fff;
   }
-}
-
-.entregables.tarjeta,
-.limites.tarjeta {
-  padding: var(--e5);
 }
 
 .marca,
@@ -2471,7 +2356,6 @@ fieldset.pregunta legend+* {
 }
 
 @media (max-width: 860px) {
-
   .pasos,
   .explica {
     grid-template-columns: 1fr;
@@ -2545,10 +2429,6 @@ fieldset.pregunta legend+* {
 .sub-antecedentes {
   margin: var(--e6) 0 var(--e2);
   font-size: 1.25rem;
-}
-
-.seccion .rejilla-3+.aviso-citas {
-  margin-bottom: var(--e5);
 }
 
 /* Impacto: matriz de valoración (estilo formularios de Google) */
@@ -2697,8 +2577,7 @@ fieldset.pregunta legend+* {
   }
 }
 
-
-/* Animaciones sutiles de la landing (solo opacidad y transform; los estados ocultos .rv los añade landing.js) */
+/* Animaciones de la landing (.rv lo añade landing.js) */
 .cabecera {
   transition: box-shadow .2s ease, border-color .2s ease;
 }
@@ -2708,7 +2587,7 @@ fieldset.pregunta legend+* {
   border-bottom-color: transparent;
 }
 
-/* 1. Entrada del hero: una sola vez, 500 ms, 80 ms entre elementos (los botones siguen activos) */
+/* 1. Entrada del hero */
 @keyframes hero-entra {
   from {
     opacity: 0;
@@ -2743,7 +2622,7 @@ fieldset.pregunta legend+* {
   }
 }
 
-/* 2. Revelado al hacer scroll: 450 ms, 16 px; escalonado de 70 ms (el retraso nunca pasa de 250 ms) */
+/* 2. Revelado al hacer scroll */
 .rv {
   opacity: 0;
   transform: translateY(16px);

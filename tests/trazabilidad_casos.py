@@ -1,9 +1,4 @@
-# Trazabilidad regla -> caso de prueba (docs/guia_matriz_trazabilidad.md).
-# Ejecuta los 50 casos y escribe, en la columna `casos_prueba` de docs/matriz_trazabilidad.csv,
-# los casos que disparan cada regla (los rangos consecutivos se abrevian: C01-C05).
-# Las pruebas unitarias que ya figuraban en la columna se conservan al final.
-# Uso: python -m tests.trazabilidad_casos   (requiere tests/casos/casos_prueba.csv;
-# se genera con python -m tests.generar_casos)
+# Llena la columna casos_prueba de la matriz: python -m tests.trazabilidad_casos
 
 from __future__ import annotations
 

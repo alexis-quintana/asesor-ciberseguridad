@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 
 from app.conocimiento.base_conocimientos import RESPUESTAS, VARIABLES
 
-# Sihwi et al. (2016), sección II.D, p. 3: punto medio de cada rango; «no_se» puntúa como «no» (criterio del equipo).
+# Punto medio de cada rango de Sihwi (2016, II.D); «no_se» = «no».
 PUNTAJE = {"si": 16.5, "parcialmente": 50.0, "no": 83.5, "no_se": 83.5}
 
 # Corte continuo de los niveles de Sihwi (adaptación del equipo).

@@ -74,7 +74,7 @@ class PruebasMotor(unittest.TestCase):
                          ["R102"] + ["R106"] * 4 + ["R101"])
 
     def test_todo_no_genera_48_hallazgos(self):
-        # mfa_cobertura genera hallazgo con «no» y «parcialmente»: con 48 «no» hay 48 hallazgos y 48 recomendaciones.
+        # 48 «no»: 48 hallazgos y 48 recomendaciones.
         resultado = inferir(caso(**{clave: "no" for clave in VARIABLES}))
         self.assertEqual(len(resultado.hallazgos), 48)
         self.assertIn("hallazgo_mfa_cobertura", [h["id"] for h in resultado.hallazgos])
@@ -184,7 +184,7 @@ class PruebasCasoDemostracion(unittest.TestCase):
         self.assertAlmostEqual(h["p_redes"], 332 / 12, places=6)
         self.assertEqual([h[f"nivel_p_{a}"] for a in AREAS], ["alto", "alto", "medio", "bajo"])
         self.assertEqual(resultado.riesgo_global, "alto")
-        # Hallazgos: cuentas 10, respaldos 10, correo 4 (el «no sé» no genera hallazgo), redes 2 → 26.
+        # Hallazgos: 10 + 10 + 4 + 2 = 26 («no sé» no cuenta).
         self.assertEqual(len(resultado.hallazgos), 26)
         self.assertEqual(resultado.verificaciones_solicitadas, ["correo"])
 

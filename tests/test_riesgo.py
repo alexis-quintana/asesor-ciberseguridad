@@ -1,4 +1,4 @@
-# Pruebas del cálculo de riesgo (motor v1).
+# Pruebas del cálculo de riesgo por área y de la extensión de impacto.
 
 import unittest
 

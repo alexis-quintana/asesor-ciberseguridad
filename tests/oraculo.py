@@ -10,7 +10,7 @@ AREA_DE = {c: v["area"] for c, v in VARIABLES.items()}
 
 # Tabla 3 del informe: puntaje de cada respuesta («no sé» se puntúa como «no»).
 PUNTAJE = {"si": 16.5, "parcialmente": 50.0, "no": 83.5, "no_se": 83.5}
-# Una carencia (hallazgo) existe con «no» o «parcialmente»; «no sé» solo pide verificación.
+# Hallazgo con «no» o «parcialmente»; «no sé» pide verificar.
 CON_HALLAZGO = {"no", "parcialmente"}
 
 # Los 12 controles esenciales (Pawar y Palivela, 2022; selección del equipo).

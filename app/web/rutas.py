@@ -1,4 +1,4 @@
-# Interfaz web con Flask.
+# Rutas públicas y de administración de la web.
 
 from __future__ import annotations
 
@@ -115,7 +115,7 @@ def registrar_rutas(app):
                                      empresa, errores), 400
         return generar_reporte_html(evaluar(respuestas, impactos), empresa)
 
-    # ------------------------------------------------------------ administración
+    # --- administración
     def clave_entorno():
         return os.environ.get("ASESOR_ADMIN_CLAVE", "")
 

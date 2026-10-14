@@ -39,7 +39,7 @@ class PruebasParcialmente(unittest.TestCase):
         r = ejecutar(**{c: "parcialmente" for c in VARIABLES})
         self.assertEqual(len(r.hallazgos), 48)
         self.assertEqual(sum(len(v) for v in r.recomendaciones.values()), 48)
-        # P = 50 en las cuatro áreas (medio): R099 → riesgo global medio; celda (medio, medio) → media.
+        # P = 50 en todo: R099 da global medio y prioridad media.
         self.assertEqual(r.riesgo_global, "medio")
         self.assertEqual({p["prioridad"] for p in r.prioridades}, {"media"})
         self.assertEqual(len(r.prioridades), 48)

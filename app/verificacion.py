@@ -10,7 +10,7 @@ from app.conocimiento.base_reglas_prioridad import REGLAS_PRIORIDAD
 from app.conocimiento.base_reglas_riesgo import REGLAS_RIESGO
 from app.inferencia.motor import AREAS, ETAPAS, OPERADORES
 
-# Hechos que el motor calcula antes de cada etapa o a partir de las respuestas (no los produce una regla).
+# Hechos que calcula el motor, no una regla.
 HECHOS_DEL_MOTOR = (
     set(VARIABLES)
     | {f"p_{a}" for a in AREAS + ("global",)} | {f"i100_{a}" for a in AREAS + ("global",)}
@@ -18,7 +18,7 @@ HECHOS_DEL_MOTOR = (
     | {"areas_riesgo_alto", "areas_riesgo_medio", "respuestas_desconocidas"}
     | {f"desconocidas_{a}" for a in AREAS}
 )
-# Hechos que la interfaz y el reporte leen: son salidas del sistema aunque ninguna regla los use.
+# Hechos de salida que lee la interfaz.
 PREFIJOS_DE_SALIDA = ("riesgo_global", "prioridad_", "zona_global", "banda_", "nivel_p_", "nivel_i_")
 
 

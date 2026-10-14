@@ -115,9 +115,9 @@ class PruebasListaPriorizada(unittest.TestCase):
         # 26 hallazgos: 18 «no» en áreas altas (alta), 6 media y 2 baja.
         self.assertEqual([i["prioridad"] for i in lista],
                          ["alta"] * 18 + ["media"] * 6 + ["baja"] * 2)
-        # Altas: cuentas (P = 69,5) y respaldos (P = 69,5) empatan; desempata el orden del cuestionario.
+        # Altas: empate en P = 69,5; desempata el orden del cuestionario.
         self.assertEqual([i["area"] for i in lista[:18]], ["cuentas"] * 9 + ["respaldos"] * 9)
-        # Medias: dos «parcialmente» en áreas altas (R129) y luego las cuatro «no» de correo (R127).
+        # Medias: dos «parcialmente» (R129) y luego cuatro «no» de correo (R127).
         self.assertEqual(lista[18]["control"], MFA)
         self.assertEqual(lista[19]["control"], "alcance_proveedor_copias")
         self.assertEqual({i["area"] for i in lista[20:24]}, {"correo"})

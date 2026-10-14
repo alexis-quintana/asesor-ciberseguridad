@@ -1,4 +1,4 @@
-/* Landing: animaciones sutiles; sin JavaScript o con «reducir movimiento» todo se ve de inmediato. */
+/* Animaciones de la landing; respeta «reducir movimiento». */
 (function () {
   'use strict';
   var reducir = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;

@@ -16,7 +16,7 @@ from app.inferencia.riesgo import PREGUNTAS_IMPACTO, evaluar_riesgo, riesgo_desd
 
 OPCIONES = {"1": "si", "2": "no", "3": "parcialmente", "4": "no_se"}
 
-# Caso de demostración (tienda en línea simulada): cuentas 69,5 alto, respaldos 69,5 alto, correo 44,4 medio, redes 27,7 bajo.
+# Caso de demostración: tienda en línea simulada.
 CASO_DEMO = {clave: "si" for clave in VARIABLES}
 CASO_DEMO.update({clave: "no" for clave in (
     "cuentas_individuales", "admin_restringido", "carpetas_restringidas", "mfa_publico",

@@ -11,7 +11,7 @@ from app.resultados.estadisticas import NOMBRE_RESPUESTA, calcular_estadisticas
 from app.resultados.explicacion import explicar
 from app.inferencia.riesgo import AREAS, riesgo_desde_hechos
 
-# Límites del sistema (sección 3.8 del informe); se muestran en la web, el reporte y la consola.
+# Límites del sistema (informe 3.8).
 AVISO_LIMITES = (
     "Este resultado orienta y no reemplaza a un especialista ni a una auditoría; "
     "un riesgo bajo no garantiza que la empresa esté protegida.",

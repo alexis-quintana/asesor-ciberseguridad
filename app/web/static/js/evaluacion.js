@@ -1,4 +1,4 @@
-/* Evaluación por pasos: un paso por área y un último paso opcional (sin JavaScript se ven todas las áreas). */
+/* Evaluación por pasos: un paso por área. */
 (function () {
   var formulario = document.getElementById('cuestionario');
   if (!formulario) return;
@@ -94,7 +94,7 @@
   formulario.addEventListener('change', botonesLimpiar);
   botonesLimpiar();
 
-  /* Con respuestas precargadas (demostración o error del servidor) se empieza en el último paso. */
+  /* Con respuestas precargadas se abre el último paso. */
   actual = respondidas() === total ? pasos.length - 1 : 0;
   actualizar();
 })();

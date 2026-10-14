@@ -1,4 +1,4 @@
-# Pruebas de la validación con casos (50 casos, oráculo independiente) y de la verificación de la base.
+# Pruebas de la validación (50 casos) y de la verificación de la base.
 
 import unittest
 

@@ -1,9 +1,4 @@
-# Análisis de sensibilidad de los puntajes de respuesta (informe, sección 4.5).
-# Recalcula con el oráculo los 50 casos con puntajes alternativos y cuenta en cuántos
-# cambian los niveles de área, el riesgo global y la lista priorizada respecto de la base
-# (Sí 16,5 / Parcialmente 50 / No y «No sé» 83,5).
-# Uso: python -m tests.sensibilidad_puntajes   (requiere tests/casos/casos_prueba.csv;
-# se genera con python -m tests.generar_casos)
+# Sensibilidad de los puntajes (informe 4.5): python -m tests.sensibilidad_puntajes
 
 from __future__ import annotations
 

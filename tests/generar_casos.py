@@ -39,8 +39,7 @@ def agregar(grupo, origen, descripcion, respuestas, impactos=None):
     CASOS.append((grupo, origen, descripcion, respuestas, impactos))
 
 
-# ---------------------------------------------------------------- G1: fuentes y enunciado
-# Ocho pymes de Chidukwani et al. (2026): cada «no» corresponde a una carencia citada en sección 4.3 y sección 4.4.
+# G1: ocho pymes de Chidukwani et al. (2026), secciones 4.3 y 4.4
 CHID = {
     "SME1": ("parcialmente", dict(cortafuegos_verificado="no", wifi_invitados_separado="no",
              filtro_correo_verificado="no", parches_equipos="no", diagrama_red="no"),
@@ -73,7 +72,7 @@ for nombre, (defecto, cambios, nota) in CHID.items():
             f"Pyme simulada inspirada en {nombre}: {nota}. Respuestas no descritas en el artículo: valor por defecto.",
             con(defecto, **cambios))
 
-# Ejemplos del enunciado de P5 (contraseñas repetidas y sin verificación en dos pasos; sin respaldos).
+# G1: ejemplos del enunciado de P5
 r = con("si", claves_diferentes="no", mfa_publico="no", mfa_cobertura="no", mfa_contacto_individual="no",
         politica_claves_aplicada="no", cuentas_individuales="no", responsable_accesos="no",
         acceso_datos_criticos="no")
@@ -89,7 +88,7 @@ r = area_con(base("si"), "redes", "no", 11)
 agregar("G1", "Enunciado de P5 (caso de una sola área)",
         "Solo la red tiene carencias: una área alta da riesgo global medio.", r)
 
-# ---------------------------------------------------------------- G2: casos límite
+# --- G2: casos límite
 agregar("G2", "Límite", "Todas las respuestas «sí».", base("si"), {a: 1 for a in AREAS})
 agregar("G2", "Límite", "Todas las respuestas «no».", base("no"), {a: 5 for a in AREAS})
 agregar("G2", "Límite", "Todas las respuestas «parcialmente».", base("parcialmente"))
@@ -130,7 +129,7 @@ agregar("G2", "Límite (R132)", "Solo falla el cortafuegos (control esencial) en
 agregar("G2", "Límite (R132)", "Solo falla el inventario de dispositivos (no esencial) en un área de riesgo bajo: prioridad baja.",
         con("si", inventario_dispositivos="no"))
 
-# ---------------------------------------------------------------- G3: mixtos (semilla fija)
+# G3: casos mixtos con semilla fija
 azar = random.Random(2026)
 PERFILES = [  # pesos de («si», «parcialmente», «no», «no_se»)
     (0.60, 0.15, 0.20, 0.05), (0.30, 0.20, 0.40, 0.10), (0.15, 0.15, 0.60, 0.10),

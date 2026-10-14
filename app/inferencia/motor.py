@@ -12,11 +12,11 @@ from app.conocimiento.base_reglas_riesgo import REGLAS_RIESGO
 from app.conocimiento.base_reglas_prioridad import REGLAS_PRIORIDAD
 from app.inferencia.riesgo import hechos_nivel_respuesta, hechos_numericos, hechos_probabilidad
 
-# Flujo principal: hallazgos, recomendaciones, verificación, nivel por área, riesgo global, prioridad, criticidad y reglas del admin.
+# Etapas del flujo principal, en orden.
 ETAPAS_BASE = ("riesgo_parcial", "recomendacion", "verificacion",
                "nivel_probabilidad", "riesgo_global", "prioridad", "criticidad",
                "recomendacion_adicional")
-# Extensión opcional (base_reglas_riesgo.py): solo corre si se cargaron los cuatro impactos.
+# Etapas de la extensión: solo con los cuatro impactos.
 ETAPAS_EXTENSION = ("nivel_impacto", "banda_riesgo", "zona")
 ETAPAS = ETAPAS_BASE + ETAPAS_EXTENSION
 
@@ -48,7 +48,7 @@ class Disparo:
     explicacion: str
     fuentes: list
     regla: dict = field(repr=False)
-    # «clave» distingue las instancias de una regla genérica; «observados» guarda los valores al disparar.
+    # clave: instancia de la regla; observados: valores al disparar.
     clave: str = ""
     observados: dict = field(default_factory=dict)
 
@@ -64,7 +64,7 @@ class ResultadoInferencia:
     prioridades: list = field(default_factory=list)
     recomendaciones_adicionales: list = field(default_factory=list)
     hechos: dict = field(default_factory=dict)
-    # Por etapa: reglas, evaluaciones, disparos y pasadas; y las reglas usadas, para explicar las no aplicadas.
+    # Estadísticas por etapa y reglas usadas.
     estadisticas: dict = field(default_factory=dict)
     reglas: list = field(default_factory=list, repr=False)
 
