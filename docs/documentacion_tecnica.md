@@ -7,9 +7,11 @@ Cómo está construido el asesor, cómo se representa el conocimiento, cómo raz
 Componentes clásicos de un sistema experto (Sihwi et al., 2016; Ghanem et al., 2023):
 
 ```
-Usuario → Interfaz (web / consola) → Memoria de trabajo ⇄ Motor de inferencia ⇄ Base de conocimientos
-                                              ↓
-                              Explicación · Reporte · Lista priorizada
+Usuario → Interfaz (web / consola) → Memoria de trabajo
+                                          ⇅
+            Base de conocimientos ⇄ Motor de inferencia
+                                          ↓
+                Explicación · Reporte · Lista priorizada
 ```
 
 | Componente | Archivos | Función |
