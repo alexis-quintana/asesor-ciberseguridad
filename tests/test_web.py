@@ -1,5 +1,6 @@
 # Pruebas de la interfaz web con el cliente de pruebas de Flask.
 
+import re
 import unittest
 
 try:
@@ -56,7 +57,8 @@ class PruebasWeb(unittest.TestCase):
         paginas.append(self.cliente.post("/resultado", data=formulario()).data.decode())
         for html in paginas:
             self.assertIn('<footer class="pie">', html)
-            self.assertIn("Desarrollado por Alexis Abel Quintana Luis y Juan Diego Montenegro Urrutia.", html)
+            texto = " ".join(re.sub(r"<[^>]+>", " ", html).split())
+            self.assertRegex(texto, r"Desarrollado por Juan Diego Montenegro Urrutia y Alexis Abel Quintana Luis\s*\.")
             self.assertIn(f"© {date.today().year} Asesor de ciberseguridad para pequeñas empresas. Todos los derechos reservados.", html)
 
     def test_hoja_de_estilos_se_sirve(self):

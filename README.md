@@ -52,11 +52,17 @@ Se entra con el botón «⚙ Administrar reglas» de la cabecera de la web. La p
 
 ## Pruebas
 ```
-python -m unittest        # desde la raíz del proyecto (157 pruebas)
+python -m unittest        # desde la raíz del proyecto (160 pruebas)
 ```
 
 ## Validación
 `python main.py --validar` compara el sistema con los resultados esperados de `tests/casos/casos_prueba.csv` (50 casos: 12 de las fuentes, 18 límite y 20 mixtos). Los esperados los calcula `tests/oraculo.py`, que no usa el motor; `python -m tests.generar_casos` regenera el archivo. El detalle queda en `docs/validacion/` (resultados por caso, resumen y verificación de la base).
+
+Otros scripts de la validación:
+```
+python -m tests.sensibilidad_puntajes   # recalcula los 50 casos con puntajes alternativos (informe, sección 4.5)
+python -m tests.trazabilidad_casos      # llena la columna casos_prueba de docs/matriz_trazabilidad.csv
+```
 
 ## Estructura
 ```
@@ -74,19 +80,20 @@ asesor-ciberseguridad/
 │   ├── verificacion.py          redundancias, conflictos, ciclos y reglas sin salida (--verificar)
 │   └── consola.py               interfaz de consola
 ├── datos/                       cambios del administrador (se generan al usar el panel; no se suben a git)
-├── docs/                        trazabilidad regla–fuente, guía de la exposición y resultados de la validación
+├── docs/                        matriz de trazabilidad regla–fuente–caso, su guía y resultados de la validación
 ├── tests/
 │   ├── casos/                   50 casos de prueba con resultado esperado (casos_prueba.csv)
 │   ├── oraculo.py               cálculo independiente de los resultados esperados
-│   └── generar_casos.py         genera casos_prueba.csv
+│   ├── generar_casos.py         genera casos_prueba.csv
+│   ├── sensibilidad_puntajes.py sensibilidad de los puntajes de respuesta
+│   └── trazabilidad_casos.py    llena la columna casos_prueba de la matriz
 ├── main.py                      punto de entrada (consola y --web)
 ├── ejecutar.bat                 prepara el entorno y ejecuta el asesor (Windows)
 ├── requirements.txt
 └── README.md
 ```
 
-Guion de la demostración y qué mostrar de cada carpeta: `docs/exposicion/GUIA_EXPOSICION.md`.
-Matriz regla–fuente–página: `docs/matriz_trazabilidad.csv`.
+Matriz regla–fuente–página–caso: `docs/matriz_trazabilidad.csv` (formato explicado en `docs/guia_matriz_trazabilidad.md`).
 
 ## Autores
 Quintana Luis, Alexis Abel · Montenegro Urrutia, Juan Diego

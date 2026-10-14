@@ -32,11 +32,11 @@ Estas referencias respaldan la **práctica de documentación**, no el método de
 | `estado` | `pendiente` (sin revisar), `con_observacion` (hay un ajuste propuesto), `confirmada` (revisada y sin cambios) o `corregida` (ajuste aplicado en la base). |
 | `verificado_por` | Persona del equipo que contrastó la fila con el PDF. Se rellena solo tras revisar. |
 | `fecha_verificacion` | AAAA-MM-DD de esa revisión. |
-| `casos_prueba` | Casos que disparan la regla. Se genera con el script de métricas; no se edita a mano. |
+| `casos_prueba` | Casos que disparan la regla (rangos abreviados, p. ej. `C01-C12`). Se genera con `python -m tests.trazabilidad_casos`; no se edita a mano. |
 
 ## Matriz de cobertura (hacia atrás)
 
-La matriz inversa (caso de prueba → reglas disparadas) la produce el script de métricas al ejecutar los casos. Con ella se calculan la cobertura (porcentaje de reglas disparadas por al menos un caso) y las reglas que ningún caso ejercita.
+La matriz inversa (caso de prueba → reglas disparadas) la produce `python main.py --validar` al ejecutar los casos (`app/validacion.py`). Con ella se calculan la cobertura (porcentaje de reglas disparadas por al menos un caso) y las reglas que ningún caso ejercita.
 
 ## Referencias de este formato
 

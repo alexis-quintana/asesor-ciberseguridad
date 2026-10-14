@@ -109,9 +109,9 @@ def area_np(area, n, p):
         r[c] = "parcialmente"
     return r
 agregar("G2", "Límite de nivel", "Cuentas con 6 puntos de carencia (P = 33,25): justo debajo del corte medio.", area_np("cuentas", 3, 0))
-agregar("G2", "Límite de nivel", "Cuentas con 7 puntos de carencia (P = 35,04): justo sobre el corte medio.", area_np("cuentas", 3, 1))
+agregar("G2", "Límite de nivel", "Cuentas con 7 puntos de carencia (P = 36,04): justo sobre el corte medio.", area_np("cuentas", 3, 1))
 agregar("G2", "Límite de nivel", "Respaldos con 18 puntos de carencia (P = 66,75): justo debajo del corte alto.", area_np("respaldos", 9, 0))
-agregar("G2", "Límite de nivel", "Respaldos con 19 puntos de carencia (P = 68,54): justo sobre el corte alto.",
+agregar("G2", "Límite de nivel", "Respaldos con 19 puntos de carencia (P = 69,54): justo sobre el corte alto.",
         area_np("respaldos", 9, 1), {"cuentas": 3, "respaldos": 3, "correo": 3, "redes": 3})
 # Esquinas de la matriz de zona (extensión): cada una dispara una celda distinta.
 agregar("G2", "Límite de zona", "Todo «sí» con impacto máximo: probabilidad baja e impacto alto (zona verde).",
